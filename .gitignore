@@ -1,0 +1,4 @@
+SocialShield/database/*.sql
+SocialShield/backups/
+SocialShield/storage/
+
