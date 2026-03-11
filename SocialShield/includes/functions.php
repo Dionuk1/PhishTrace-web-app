@@ -1145,3 +1145,93 @@ if (!function_exists('languageFlagUrl')) {
         return strtolower($lang) === 'sq' ? 'https://flagcdn.com/w40/xk.png' : 'https://flagcdn.com/w40/us.png';
     }
 }
+if (!function_exists('displayStatusLabel')) {
+    function displayStatusLabel(string $status): string
+    {
+        $normalized = strtolower(trim($status));
+        return match ($normalized) {
+            'success' => 'Success',
+            'failed', 'failure', 'danger', 'error' => 'Failed',
+            default => ucfirst($status),
+        };
+    }
+}
+
+if (!function_exists('ssBackupDirectory')) {
+    function ssBackupDirectory(): string
+    {
+        $dir = realpath(__DIR__ . '/..') . DIRECTORY_SEPARATOR . 'backups';
+        if (!is_dir($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) {
+            throw new RuntimeException('Could not create backups directory.');
+        }
+        return $dir;
+    }
+}
+
+if (!function_exists('createUsersBackup')) {
+    function createUsersBackup(PDO $pdo, string $label = 'manual'): ?array
+    {
+        if (!isTableUsable($pdo, 'users')) {
+            return null;
+        }
+
+        $backupDir = ssBackupDirectory();
+        $stamp = date('Ymd_His');
+        $safeLabel = preg_replace('/[^a-zA-Z0-9_-]/', '_', $label) ?: 'backup';
+        $csvPath = $backupDir . DIRECTORY_SEPARATOR . "users_{$safeLabel}_{$stamp}.csv";
+
+        $rows = $pdo->query('SELECT * FROM users ORDER BY id ASC')->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $columns = $rows !== [] ? array_keys($rows[0]) : ['id', 'name', 'email', 'password_hash', 'role', 'security_score', 'created_at'];
+
+        $fh = fopen($csvPath, 'wb');
+        if ($fh === false) {
+            return null;
+        }
+
+        fputcsv($fh, $columns);
+        foreach ($rows as $row) {
+            $line = [];
+            foreach ($columns as $col) {
+                $line[] = $row[$col] ?? null;
+            }
+            fputcsv($fh, $line);
+        }
+        fclose($fh);
+
+        return ['csv' => $csvPath, 'rows' => count($rows)];
+    }
+}
+
+if (!function_exists('createScansBackup')) {
+    function createScansBackup(PDO $pdo, string $label = 'manual'): ?array
+    {
+        if (!isTableUsable($pdo, 'scans')) {
+            return null;
+        }
+
+        $backupDir = ssBackupDirectory();
+        $stamp = date('Ymd_His');
+        $safeLabel = preg_replace('/[^a-zA-Z0-9_-]/', '_', $label) ?: 'backup';
+        $csvPath = $backupDir . DIRECTORY_SEPARATOR . "scans_{$safeLabel}_{$stamp}.csv";
+
+        $rows = $pdo->query('SELECT * FROM scans ORDER BY id ASC')->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $columns = $rows !== [] ? array_keys($rows[0]) : ['id', 'user_id', 'url', 'domain', 'risk_score', 'status', 'reasons', 'scanned_at'];
+
+        $fh = fopen($csvPath, 'wb');
+        if ($fh === false) {
+            return null;
+        }
+
+        fputcsv($fh, $columns);
+        foreach ($rows as $row) {
+            $line = [];
+            foreach ($columns as $col) {
+                $line[] = $row[$col] ?? null;
+            }
+            fputcsv($fh, $line);
+        }
+        fclose($fh);
+
+        return ['csv' => $csvPath, 'rows' => count($rows)];
+    }
+}
