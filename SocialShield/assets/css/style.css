@@ -679,11 +679,17 @@ h6 {
     border-bottom: 1px solid rgba(104, 149, 214, 0.14);
 }
 
-.ss-notification-menu__stats div {
-    padding: 0.75rem 0.85rem;
-    border: 1px solid rgba(104, 149, 214, 0.14);
-    border-radius: 0.85rem;
-    background: rgba(8, 17, 32, 0.78);
+
+.ss-notification-menu__stats .ss-metric-label {
+    color: #93c5fd;
+}
+
+.ss-notification-menu__stats strong {
+    display: block;
+    color: #f8fbff;
+    font-size: 1.55rem;
+    line-height: 1;
+    font-weight: 800;
 }
 
 .ss-notification-menu__list {
@@ -1302,6 +1308,7 @@ h6 {
         justify-content: center;
     }
 }
+
 
 
 
