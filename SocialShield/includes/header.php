@@ -32,9 +32,17 @@ $achievementNotifications = [
 ];
 
 if ($user) {
-    $achievementNotifications = getUserAchievementNotificationData((int) $user['id'], getPDO());
+    $pdo = getPDO();
+    $achievementNotifications = getUserAchievementNotificationData((int) $user['id'], $pdo);
+    $userCyberScore = 0;
+    $userCyberLevel = tr('Beginner', 'Fillestar');
+    if (tableHasColumn($pdo, 'users', 'security_score')) {
+        $scoreStmt = $pdo->prepare('SELECT COALESCE(security_score, 0) FROM users WHERE id = :id LIMIT 1');
+        $scoreStmt->execute(['id' => (int) $user['id']]);
+        $userCyberScore = (int) ($scoreStmt->fetchColumn() ?: 0);
+        $userCyberLevel = securityLevelFromScore($userCyberScore);
+    }
 }
-
 if (!headers_sent()) {
     header('Content-Type: text/html; charset=UTF-8');
 }
@@ -132,6 +140,11 @@ if (!headers_sent()) {
                             </div>
                         </div>
                     </div>
+
+                    <a class="btn ss-cyber-pill" href="<?= e(appPath('cyber_level.php')); ?>" title="Your Cyber Level">
+                        <span class="ss-cyber-pill__label"><?= e(tr('Your Cyber Level', 'Niveli Yt Kibernetik')); ?></span>
+                        <strong><?= (int) ($userCyberScore ?? 0); ?></strong>
+                    </a>
 
                     <div class="dropdown">
                         <button class="btn ss-profile-toggle dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">

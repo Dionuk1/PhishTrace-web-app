@@ -1235,3 +1235,46 @@ if (!function_exists('createScansBackup')) {
         return ['csv' => $csvPath, 'rows' => count($rows)];
     }
 }
+if (!function_exists('securityLevelFromScore')) {
+    function securityLevelFromScore(int $score): string
+    {
+        if ($score <= 50) {
+            return tr('Beginner', 'Fillestar');
+        }
+        if ($score <= 150) {
+            return tr('Aware User', 'Perdorues i Vetedijshem');
+        }
+        if ($score <= 300) {
+            return tr('Security Savvy', 'I Zoti ne Siguri');
+        }
+        return tr('Phishing Hunter', 'Gjuetar i Phishing');
+    }
+}
+
+if (!function_exists('syncUserSecurityScore')) {
+    function syncUserSecurityScore(PDO $pdo, int $userId): int
+    {
+        if ($userId <= 0 || !tableHasColumn($pdo, 'users', 'security_score')) {
+            return 0;
+        }
+
+        $stmt = $pdo->prepare(
+            "SELECT
+                SUM(CASE WHEN status = 'Safe' THEN 10 ELSE 0 END)
+              + SUM(CASE WHEN status = 'Suspicious' THEN 3 ELSE 0 END)
+              + SUM(CASE WHEN status = 'Dangerous' THEN 0 ELSE 0 END) AS total_points
+             FROM scans
+             WHERE user_id = :user_id"
+        );
+        $stmt->execute(['user_id' => $userId]);
+        $score = (int) ($stmt->fetchColumn() ?: 0);
+
+        $update = $pdo->prepare('UPDATE users SET security_score = :score WHERE id = :id');
+        $update->execute([
+            'score' => $score,
+            'id' => $userId,
+        ]);
+
+        return $score;
+    }
+}

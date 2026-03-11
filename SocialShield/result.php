@@ -36,6 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     );
 
     $_SESSION['latest_scan_analysis'] = $analysis;
+    $_SESSION['show_achievement_popup'] = true;
     unset($_SESSION['latest_ai_report']);
 } else {
     $analysis = $_SESSION['latest_scan_analysis'] ?? null;
@@ -51,6 +52,20 @@ if (empty($analysis['threat_alerts']) && !empty($analysis['html_analysis'])) {
 $aiReport = $_SESSION['latest_ai_report'] ?? null;
 $statusLabel = statusDisplayLabel((string) $analysis['status']);
 $riskTone = riskBarTone((string) $analysis['status']);
+
+$showAchievementPopup = !empty($_SESSION['show_achievement_popup']);
+if ($showAchievementPopup) {
+    unset($_SESSION['show_achievement_popup']);
+}
+
+$latestAchievement = null;
+if ($showAchievementPopup) {
+    $popupUser = currentUser();
+    if ($popupUser) {
+        $popupData = getUserAchievementNotificationData((int) $popupUser['id'], getPDO());
+        $latestAchievement = $popupData['latest_unlock'] ?? null;
+    }
+}
 
 $pageTitle = 'AI Security Assistant';
 require_once __DIR__ . '/includes/header.php';
@@ -145,6 +160,7 @@ require_once __DIR__ . '/includes/header.php';
                     <input type="hidden" name="csrf_token" value="<?= e(csrfToken()); ?>">
                     <button type="submit" class="btn btn-primary ss-ai-trigger">Generate AI Summary</button>
                 </form>
+                <a href="<?= e(appPath('ai_summary_popup.php')); ?>" class="btn btn-outline-light btn-sm" target="_blank" onclick="window.open(this.href,'aiSummaryPopup','width=980,height=780'); return false;">Open AI Summary Popup</a>
                 <span class="ss-chip">Source: OpenAI or fallback security model</span>
             </div>
 
@@ -173,5 +189,31 @@ require_once __DIR__ . '/includes/header.php';
     <a href="<?= e(appPath('scan.php')); ?>" class="btn btn-primary">Scan Another URL</a>
     <a href="<?= e(appPath('history.php')); ?>" class="btn btn-outline-light">View Scan History</a>
 </div>
+
+<?php if ($showAchievementPopup && is_array($latestAchievement)): ?>
+<div class="modal fade" id="achievementPopup" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content ss-panel">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">Achievement Unlocked</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h4 class="mb-2"><?= e((string) $latestAchievement['title']); ?></h4>
+                <p class="text-secondary mb-2"><?= e((string) $latestAchievement['description']); ?></p>
+                <span class="badge text-bg-success">+<?= (int) $latestAchievement['points']; ?> pts</span>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var popupEl = document.getElementById('achievementPopup');
+        if (!popupEl || typeof bootstrap === 'undefined') return;
+        var modal = new bootstrap.Modal(popupEl);
+        modal.show();
+    });
+</script>
+<?php endif; ?>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
