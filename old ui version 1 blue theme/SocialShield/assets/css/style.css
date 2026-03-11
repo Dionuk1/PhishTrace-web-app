@@ -1218,3 +1218,101 @@ h6 {
 .ss-admin-nav-link.active {
     color: #fecaca !important;
 }
+/* Header stack alignment override */
+.ss-navbar-tools--auth {
+    width: 228px;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+}
+
+.ss-navbar-tools--auth .ss-navbar-tools__primary,
+.ss-navbar-tools--auth .ss-navbar-tools__secondary {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.ss-navbar-tools--auth .dropdown {
+    width: 100%;
+}
+
+.ss-navbar-tools--auth .ss-notification-btn,
+.ss-navbar-tools--auth .ss-profile-toggle {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.ss-navbar-tools--auth .ss-notification-btn {
+    gap: 0.55rem;
+}
+
+.ss-navbar-tools--auth .ss-cyber-pill {
+    width: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    padding: 0.48rem 0.78rem;
+    border-radius: 999px;
+    border: 1px solid rgba(61, 242, 194, 0.35);
+    background: rgba(2, 12, 26, 0.7);
+    color: #c9f8ff;
+    box-shadow: none;
+}
+
+.ss-navbar-tools--auth .ss-cyber-pill:hover,
+.ss-navbar-tools--auth .ss-cyber-pill:focus {
+    background: rgba(5, 18, 36, 0.9);
+    color: #eafcff;
+}
+
+.ss-navbar-tools--auth .ss-cyber-pill .ss-cyber-pill__label {
+    color: #8ed9ea !important;
+    font-weight: 600;
+}
+
+.ss-navbar-tools--auth .ss-cyber-pill strong {
+    color: #f1f8ff !important;
+}
+
+.ss-navbar-tools--auth .dropdown-menu-end {
+    inset-inline-end: 0 !important;
+}
+
+.ss-navbar-tools--guest {
+    gap: 0.75rem;
+}
+
+.ss-navbar-tools--guest .nav-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 112px;
+    padding: 0.68rem 1rem;
+    border-radius: 0.9rem;
+    border: 1px solid rgba(94, 195, 252, 0.32);
+    background: rgba(7, 17, 30, 0.72);
+    color: #f1f1f1 !important;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+}
+
+.ss-navbar-tools--guest .nav-link:hover,
+.ss-navbar-tools--guest .nav-link:focus {
+    background: linear-gradient(135deg, rgba(94, 195, 252, 0.22), rgba(85, 64, 222, 0.3));
+    border-color: rgba(163, 181, 247, 0.58);
+    color: #ffffff !important;
+}
+
+@media (max-width: 991.98px) {
+    .ss-navbar-tools--auth {
+        width: min(100%, 240px);
+    }
+}
