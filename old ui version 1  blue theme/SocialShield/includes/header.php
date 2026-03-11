@@ -20,7 +20,7 @@ if (isset($_GET['lang'])) {
 
 $flash = getFlash();
 $user = currentUser();
-$pageTitle = $pageTitle ?? 'PhishTrace';
+$pageTitle = $pageTitle ?? 'SocialShield';
 $sessionLang = (string) ($_SESSION['lang'] ?? 'en');
 $selectedLang = in_array($sessionLang, ['en', 'sq'], true) ? $sessionLang : 'en';
 $txt = static fn(string $en, string $sq): string => $selectedLang === 'sq' ? $sq : $en;
@@ -30,9 +30,16 @@ $achievementNotifications = [
     'total_points' => 0,
     'achievements' => [],
 ];
+$userCyberScore = 0;
 
 if ($user) {
-    $achievementNotifications = getUserAchievementNotificationData((int) $user['id'], getPDO());
+    $pdo = getPDO();
+    $achievementNotifications = getUserAchievementNotificationData((int) $user['id'], $pdo);
+    if (tableHasColumn($pdo, 'users', 'security_score')) {
+        $scoreStmt = $pdo->prepare('SELECT COALESCE(security_score, 0) FROM users WHERE id = :id LIMIT 1');
+        $scoreStmt->execute(['id' => (int) $user['id']]);
+        $userCyberScore = (int) ($scoreStmt->fetchColumn() ?: 0);
+    }
 }
 
 if (!headers_sent()) {
@@ -44,7 +51,7 @@ if (!headers_sent()) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= e($pageTitle); ?> | PhishTrace</title>
+    <title><?= e($pageTitle); ?> | SocialShield</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
@@ -54,7 +61,7 @@ if (!headers_sent()) {
 <body class="ss-body">
 <nav class="navbar navbar-expand-lg navbar-dark ss-navbar">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="<?= e(appPath('index.php')); ?>">PhishTrace</a>
+        <a class="navbar-brand fw-bold" href="<?= e(appPath('index.php')); ?>">SocialShield</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -132,6 +139,11 @@ if (!headers_sent()) {
                             </div>
                         </div>
                     </div>
+
+                    <a class="btn ss-cyber-pill" href="<?= e(appPath('cyber_level.php')); ?>" title="Your Cyber Level">
+                        <span class="ss-cyber-pill__label"><?= e(tr('Your Cyber Level', 'Niveli Yt Kibernetik')); ?></span>
+                        <strong><?= (int) $userCyberScore; ?></strong>
+                    </a>
 
                     <div class="dropdown">
                         <button class="btn ss-profile-toggle dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">

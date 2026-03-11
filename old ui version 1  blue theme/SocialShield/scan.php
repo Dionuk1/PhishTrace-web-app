@@ -14,7 +14,7 @@ require_once __DIR__ . '/includes/header.php';
             <div class="ss-scan-card__glow" aria-hidden="true"></div>
             <div class="ss-scan-intro">
                 <h1 class="ss-title mb-3">Skano nj&#235; link t&#235; dyshimt&#235;</h1>
-                <p class="ss-lead mb-4">PhishTrace kontrollon URL-n&#235;, treguesit e skanimit dhe modelet e dyshimta p&#235;rpara se t&#235; klikosh.</p>
+                <p class="ss-lead mb-4">SocialShield kontrollon URL-n&#235;, treguesit e skanimit dhe modelet e dyshimta p&#235;rpara se t&#235; klikosh.</p>
             </div>
 
             <form action="<?= e(appPath('result.php')); ?>" method="post" novalidate>

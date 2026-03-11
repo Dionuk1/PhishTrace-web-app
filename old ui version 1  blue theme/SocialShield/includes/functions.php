@@ -190,7 +190,7 @@ function envValue(string $key, ?string $default = null): ?string
  */
 function fetchRemoteHtml(string $url): array
 {
-    $userAgent = 'PhishTrace-AI-Security-Assistant/1.0';
+    $userAgent = 'SocialShield-AI-Security-Assistant/1.0';
     $headers = [
         'User-Agent: ' . $userAgent,
         'Accept: text/html,application/xhtml+xml',
@@ -637,7 +637,7 @@ function generateAiSecurityAssistantReport(array $analysis): array
 
     $payload = [
         'model' => $model,
-        'instructions' => 'You are PhishTrace AI Security Assistant. Explain phishing risk clearly, reference only provided indicators, and give concise safety recommendations.',
+        'instructions' => 'You are SocialShield AI Security Assistant. Explain phishing risk clearly, reference only provided indicators, and give concise safety recommendations.',
         'input' => [
             [
                 'role' => 'user',
@@ -1143,5 +1143,138 @@ if (!function_exists('languageFlagUrl')) {
     function languageFlagUrl(string $lang): string
     {
         return strtolower($lang) === 'sq' ? 'https://flagcdn.com/w40/xk.png' : 'https://flagcdn.com/w40/us.png';
+    }
+}
+if (!function_exists('displayStatusLabel')) {
+    function displayStatusLabel(string $status): string
+    {
+        $normalized = strtolower(trim($status));
+        return match ($normalized) {
+            'success' => 'Success',
+            'failed', 'failure', 'danger', 'error' => 'Failed',
+            default => ucfirst($status),
+        };
+    }
+}
+
+if (!function_exists('ssBackupDirectory')) {
+    function ssBackupDirectory(): string
+    {
+        $dir = realpath(__DIR__ . '/..') . DIRECTORY_SEPARATOR . 'backups';
+        if (!is_dir($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) {
+            throw new RuntimeException('Could not create backups directory.');
+        }
+        return $dir;
+    }
+}
+
+if (!function_exists('createUsersBackup')) {
+    function createUsersBackup(PDO $pdo, string $label = 'manual'): ?array
+    {
+        if (!isTableUsable($pdo, 'users')) {
+            return null;
+        }
+
+        $backupDir = ssBackupDirectory();
+        $stamp = date('Ymd_His');
+        $safeLabel = preg_replace('/[^a-zA-Z0-9_-]/', '_', $label) ?: 'backup';
+        $csvPath = $backupDir . DIRECTORY_SEPARATOR . "users_{$safeLabel}_{$stamp}.csv";
+
+        $rows = $pdo->query('SELECT * FROM users ORDER BY id ASC')->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $columns = $rows !== [] ? array_keys($rows[0]) : ['id', 'name', 'email', 'password_hash', 'role', 'security_score', 'created_at'];
+
+        $fh = fopen($csvPath, 'wb');
+        if ($fh === false) {
+            return null;
+        }
+
+        fputcsv($fh, $columns);
+        foreach ($rows as $row) {
+            $line = [];
+            foreach ($columns as $col) {
+                $line[] = $row[$col] ?? null;
+            }
+            fputcsv($fh, $line);
+        }
+        fclose($fh);
+
+        return ['csv' => $csvPath, 'rows' => count($rows)];
+    }
+}
+
+if (!function_exists('createScansBackup')) {
+    function createScansBackup(PDO $pdo, string $label = 'manual'): ?array
+    {
+        if (!isTableUsable($pdo, 'scans')) {
+            return null;
+        }
+
+        $backupDir = ssBackupDirectory();
+        $stamp = date('Ymd_His');
+        $safeLabel = preg_replace('/[^a-zA-Z0-9_-]/', '_', $label) ?: 'backup';
+        $csvPath = $backupDir . DIRECTORY_SEPARATOR . "scans_{$safeLabel}_{$stamp}.csv";
+
+        $rows = $pdo->query('SELECT * FROM scans ORDER BY id ASC')->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $columns = $rows !== [] ? array_keys($rows[0]) : ['id', 'user_id', 'url', 'domain', 'risk_score', 'status', 'reasons', 'scanned_at'];
+
+        $fh = fopen($csvPath, 'wb');
+        if ($fh === false) {
+            return null;
+        }
+
+        fputcsv($fh, $columns);
+        foreach ($rows as $row) {
+            $line = [];
+            foreach ($columns as $col) {
+                $line[] = $row[$col] ?? null;
+            }
+            fputcsv($fh, $line);
+        }
+        fclose($fh);
+
+        return ['csv' => $csvPath, 'rows' => count($rows)];
+    }
+}
+if (!function_exists('securityLevelFromScore')) {
+    function securityLevelFromScore(int $score): string
+    {
+        if ($score <= 50) {
+            return tr('Beginner', 'Fillestar');
+        }
+        if ($score <= 150) {
+            return tr('Aware User', 'Perdorues i Vetedijshem');
+        }
+        if ($score <= 300) {
+            return tr('Security Savvy', 'I Zoti ne Siguri');
+        }
+        return tr('Phishing Hunter', 'Gjuetar i Phishing');
+    }
+}
+
+if (!function_exists('syncUserSecurityScore')) {
+    function syncUserSecurityScore(PDO $pdo, int $userId): int
+    {
+        if ($userId <= 0 || !tableHasColumn($pdo, 'users', 'security_score')) {
+            return 0;
+        }
+
+        $stmt = $pdo->prepare(
+            "SELECT
+                SUM(CASE WHEN status = 'Safe' THEN 10 ELSE 0 END)
+              + SUM(CASE WHEN status = 'Suspicious' THEN 3 ELSE 0 END)
+              + SUM(CASE WHEN status = 'Dangerous' THEN 0 ELSE 0 END) AS total_points
+             FROM scans
+             WHERE user_id = :user_id"
+        );
+        $stmt->execute(['user_id' => $userId]);
+        $score = (int) ($stmt->fetchColumn() ?: 0);
+
+        $update = $pdo->prepare('UPDATE users SET security_score = :score WHERE id = :id');
+        $update->execute([
+            'score' => $score,
+            'id' => $userId,
+        ]);
+
+        return $score;
     }
 }
