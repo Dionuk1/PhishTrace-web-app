@@ -14,7 +14,7 @@ require_once __DIR__ . '/includes/header.php';
             <p class="ss-kicker mb-2">AI Security Assistant</p>
             <h1 class="ss-title mb-3">Analyze suspicious websites like a phishing investigation dashboard.</h1>
             <p class="ss-lead mb-0">
-                SocialShield fetches the live page, checks threat indicators, and generates a human-readable AI security explanation.
+                PhishTrace fetches the live page, checks threat indicators, and generates a human-readable AI security explanation.
             </p>
         </div>
         <div class="col-lg-5">
@@ -71,3 +71,4 @@ require_once __DIR__ . '/includes/header.php';
 </div>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
+

@@ -1,6 +1,6 @@
-# SocialShield (PHP University Project)
+# PhishTrace (PHP University Project)
 
-SocialShield is a beginner-friendly phishing/scam URL detection web app for:
+PhishTrace is a beginner-friendly phishing/scam URL detection web app for:
 Security and Privacy in Social Networks.
 
 It uses rule-based scoring to classify links as Safe, Suspicious, or Dangerous.
@@ -14,7 +14,7 @@ It uses rule-based scoring to classify links as Safe, Suspicious, or Dangerous.
 
 ## Project Structure
 ```text
-SocialShield/
+PhishTrace/
 |-- index.php
 |-- scan.php
 |-- result.php
@@ -35,7 +35,7 @@ SocialShield/
 |-- assets/
 |   |-- css/style.css
 |   `-- js/app.js
-|-- database/socialshield.sql
+|-- database/phishtrace.sql
 `-- README.md
 ```
 
@@ -51,27 +51,27 @@ SocialShield/
 - Responsive Bootstrap 5.3 UI
 
 ## XAMPP Setup (Windows)
-1. Copy folder to `C:\xampp\htdocs\socialshield`
+1. Copy folder to `C:\xampp\htdocs\phishtrace`
 2. Start Apache and MySQL in XAMPP
 3. Open `http://localhost/phpmyadmin`
-4. Create database `socialshield`
-5. Import `database/socialshield.sql`
-6. Open `http://localhost/socialshield`
+4. Create database `phishtrace`
+5. Import `database/phishtrace.sql`
+6. Open `http://localhost/phishtrace`
 
 ## Database Connection
 Edit `includes/db.php` if needed:
 - host: `127.0.0.1`
-- db: `socialshield`
+- db: `phishtrace`
 - user: `root`
 - pass: empty (default XAMPP)
 
 ## Demo Credentials
 - Admin
-- Email: `admin@socialshield.local`
+- Email: `admin@phishtrace.local`
 - Password: `password`
 
 - User
-- Email: `student@socialshield.local`
+- Email: `student@phishtrace.local`
 - Password: `password`
 
 ## Detection Rules
@@ -111,4 +111,5 @@ Likely Dangerous:
 
 ## Security Reminder
 This is an educational rule-based project and not a full enterprise threat intelligence system.
+
 

@@ -7,7 +7,7 @@ require_once __DIR__ . '/functions.php';
 
 $flash = getFlash();
 $user = currentUser();
-$pageTitle = $pageTitle ?? 'SocialShield';
+$pageTitle = $pageTitle ?? 'PhishTrace';
 $achievementNotifications = [
     'latest_unlock' => null,
     'total_achievements' => 0,
@@ -28,7 +28,7 @@ if (!headers_sent()) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= e($pageTitle); ?> | SocialShield</title>
+    <title><?= e($pageTitle); ?> | PhishTrace</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
@@ -38,7 +38,7 @@ if (!headers_sent()) {
 <body class="ss-body">
 <nav class="navbar navbar-expand-lg navbar-dark ss-navbar">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="<?= e(appPath('index.php')); ?>">SocialShield</a>
+        <a class="navbar-brand fw-bold" href="<?= e(appPath('index.php')); ?>">PhishTrace</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -131,3 +131,4 @@ if (!headers_sent()) {
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     <?php endif; ?>
+

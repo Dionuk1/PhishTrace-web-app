@@ -7,7 +7,7 @@ require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/auth.php';
 
 /**
- * Build base URL like "/socialshield" regardless of current script depth.
+ * Build base URL like "/phishtrace" regardless of current script depth.
  */
 function appBaseUrl(): string
 {
@@ -190,7 +190,7 @@ function envValue(string $key, ?string $default = null): ?string
  */
 function fetchRemoteHtml(string $url): array
 {
-    $userAgent = 'SocialShield-AI-Security-Assistant/1.0';
+    $userAgent = 'PhishTrace-AI-Security-Assistant/1.0';
     $headers = [
         'User-Agent: ' . $userAgent,
         'Accept: text/html,application/xhtml+xml',
@@ -637,7 +637,7 @@ function generateAiSecurityAssistantReport(array $analysis): array
 
     $payload = [
         'model' => $model,
-        'instructions' => 'You are SocialShield AI Security Assistant. Explain phishing risk clearly, reference only provided indicators, and give concise safety recommendations.',
+        'instructions' => 'You are PhishTrace AI Security Assistant. Explain phishing risk clearly, reference only provided indicators, and give concise safety recommendations.',
         'input' => [
             [
                 'role' => 'user',
@@ -1077,3 +1077,4 @@ function socialSafetyRecommendations(): array
         'Report suspicious profiles, posts, and links immediately.',
     ];
 }
+

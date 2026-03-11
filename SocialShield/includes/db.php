@@ -207,7 +207,7 @@ function ensureCoreTables(PDO $pdo): void
 }
 
 /**
- * Prefer a clean `socialshield` database and create it if needed.
+ * Prefer a clean `phishtrace` database and create it if needed.
  * Falls back to existing `social shield` only when create permission is unavailable.
  */
 function resolveDatabaseName(PDO $serverPdo): string
@@ -246,14 +246,14 @@ function ensureDemoAdmin(PDO $pdo): void
         'INSERT INTO users (name, email, password_hash, role) VALUES (:name, :email, :password_hash, :role)'
     );
     $stmt->execute([
-        'name' => 'SocialShield Admin',
-        'email' => 'admin@socialshield.local',
+        'name' => 'PhishTrace Admin',
+        'email' => 'admin@phishtrace.local',
         'password_hash' => password_hash('Admin123!', PASSWORD_DEFAULT),
         'role' => 'admin',
     ]);
     $stmt->execute([
         'name' => 'Student Demo',
-        'email' => 'student@socialshield.local',
+        'email' => 'student@phishtrace.local',
         'password_hash' => password_hash('Student123!', PASSWORD_DEFAULT),
         'role' => 'user',
     ]);
@@ -382,11 +382,12 @@ function getPDO(): PDO
         http_response_code(500);
         exit(
             'Database connection failed.' . PHP_EOL .
-            '1) Open phpMyAdmin and create database socialshield (or social shield)' . PHP_EOL .
-            '2) Import C:\\xampp\\htdocs\\socialshield\\database\\socialshield.sql' . PHP_EOL .
-            '3) Open http://localhost/socialshield'
+            '1) Open phpMyAdmin and create database phishtrace (or social shield)' . PHP_EOL .
+            '2) Import C:\\xampp\\htdocs\\phishtrace\\database\\phishtrace.sql' . PHP_EOL .
+            '3) Open http://localhost/phishtrace'
         );
     }
 
     return $pdo;
 }
+

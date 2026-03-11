@@ -15,22 +15,26 @@ if (session_status() === PHP_SESSION_NONE) {
 // Override with environment variables when needed.
 
 if (!defined('DB_HOST')) {
-    define('DB_HOST', getenv('SOCIALSHIELD_DB_HOST') ?: '127.0.0.1');
+    define('DB_HOST', getenv('PHISHTRACE_DB_HOST') ?: (getenv('SOCIALSHIELD_DB_HOST') ?: '127.0.0.1'));
 }
 
 if (!defined('DB_NAME')) {
-    define('DB_NAME', getenv('SOCIALSHIELD_DB_NAME') ?: 'socialshield');
+    define('DB_NAME', getenv('PHISHTRACE_DB_NAME') ?: (getenv('SOCIALSHIELD_DB_NAME') ?: 'phishtrace'));
 }
 
 if (!defined('DB_USER')) {
-    define('DB_USER', getenv('SOCIALSHIELD_DB_USER') ?: 'root');
+    define('DB_USER', getenv('PHISHTRACE_DB_USER') ?: (getenv('SOCIALSHIELD_DB_USER') ?: 'root'));
 }
 
 if (!defined('DB_PASS')) {
-    $dbPass = getenv('SOCIALSHIELD_DB_PASS');
+    $dbPass = getenv('PHISHTRACE_DB_PASS');
+    if ($dbPass === false) {
+        $dbPass = getenv('SOCIALSHIELD_DB_PASS');
+    }
     define('DB_PASS', $dbPass !== false ? $dbPass : '');
 }
 
 if (!defined('DB_CHARSET')) {
     define('DB_CHARSET', 'utf8mb4');
 }
+

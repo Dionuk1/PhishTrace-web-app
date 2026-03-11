@@ -15,7 +15,7 @@ require_once __DIR__ . '/includes/header.php';
 <p class="text-muted">These tips help reduce phishing, account takeover, and privacy leaks.</p>
 
 <?php if (!$tips): ?>
-    <div class="alert alert-info">No tips found. Import `database/socialshield.sql` seed data first.</div>
+    <div class="alert alert-info">No tips found. Import `database/phishtrace.sql` seed data first.</div>
 <?php else: ?>
     <div class="row g-4">
         <?php foreach ($tips as $tip): ?>
@@ -33,3 +33,4 @@ require_once __DIR__ . '/includes/header.php';
 <?php endif; ?>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
+
