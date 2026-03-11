@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         button.addEventListener('click', () => {
+            button.blur();
             const nextVisible = input.type === 'password';
             input.type = nextVisible ? 'text' : 'password';
             button.setAttribute('aria-pressed', nextVisible ? 'true' : 'false');
@@ -36,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
             void button.offsetWidth;
             button.classList.add('is-bouncing');
             button.classList.toggle('is-revealed', nextVisible);
+            input.focus({ preventScroll: true });
         });
 
         button.addEventListener('animationend', () => {

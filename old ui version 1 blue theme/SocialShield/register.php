@@ -83,7 +83,7 @@ require_once __DIR__ . '/includes/header.php';
                     <div class="mb-3">
                         <label for="password" class="form-label">Password</label>
                         <div class="ss-password-shell">
-                            <input type="password" class="form-control ss-password-shell__input" id="password" name="password" required>
+                            <input type="password" class="form-control ss-password-shell__input" id="password" name="password" placeholder="Type your old password" required>
                             <button
                                 type="button"
                                 class="btn ss-password-peek"
@@ -95,11 +95,12 @@ require_once __DIR__ . '/includes/header.php';
                                 <span class="ss-password-peek__emoji ss-password-peek__emoji--visible" aria-hidden="true">&#x1F435;</span>
                             </button>
                         </div>
+                        <div class="form-text">If you do not know your old password, type your new password here.</div>
                     </div>
                     <div class="mb-3">
                         <label for="confirm_password" class="form-label">Confirm password</label>
                         <div class="ss-password-shell">
-                            <input type="password" class="form-control ss-password-shell__input" id="confirm_password" name="confirm_password" required>
+                            <input type="password" class="form-control ss-password-shell__input" id="confirm_password" name="confirm_password" placeholder="Repeat your password" required>
                             <button
                                 type="button"
                                 class="btn ss-password-peek"
@@ -111,9 +112,14 @@ require_once __DIR__ . '/includes/header.php';
                                 <span class="ss-password-peek__emoji ss-password-peek__emoji--visible" aria-hidden="true">&#x1F435;</span>
                             </button>
                         </div>
+                        <div class="form-text">Repeat the same password to confirm it.</div>
                     </div>
                     <button type="submit" class="btn btn-primary w-100">Register</button>
                 </form>
+                <p class="text-center mt-3 mb-0">
+                    <span class="text-muted">Already have an account?</span>
+                    <a href="<?= e(appPath('login.php')); ?>" class="text-info text-decoration-none">Login here</a>
+                </p>
             </div>
         </div>
     </div>

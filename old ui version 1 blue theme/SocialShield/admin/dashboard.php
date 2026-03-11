@@ -63,11 +63,11 @@ require_once __DIR__ . '/../includes/header.php';
     <div class="card-body">
         <h3 class="h5 mb-3">Legacy Admin Tools</h3>
         <div class="d-flex flex-wrap gap-2">
-            <a href="<?= e(appPath('admin/users.php')); ?>" class="btn btn-outline-light btn-sm">Protected Users Database</a>
-            <a href="<?= e(appPath('admin/restore_users.php')); ?>" class="btn btn-outline-light btn-sm">Restore Users</a>
-            <a href="<?= e(appPath('admin/restore_scans.php')); ?>" class="btn btn-outline-light btn-sm">Restore Scans</a>
-            <a href="<?= e(appPath('leaderboard.php')); ?>" class="btn btn-outline-light btn-sm">Leaderboard</a>
-            <a href="<?= e(appPath('cyber_level.php')); ?>" class="btn btn-outline-light btn-sm">Cyber Level</a>
+            <a href="<?= e(appPath('admin/users.php')); ?>" class="btn btn-outline-light btn-sm ss-tool-btn"><span class="ss-tool-btn__icon" aria-hidden="true">🛡</span><span>Protected Users Database</span></a>
+            <a href="<?= e(appPath('admin/restore_users.php')); ?>" class="btn btn-outline-light btn-sm ss-tool-btn"><span class="ss-tool-btn__icon" aria-hidden="true">♻</span><span>Restore Users</span></a>
+            <a href="<?= e(appPath('admin/restore_scans.php')); ?>" class="btn btn-outline-light btn-sm ss-tool-btn"><span class="ss-tool-btn__icon" aria-hidden="true">🔄</span><span>Restore Scans</span></a>
+            <a href="<?= e(appPath('leaderboard.php')); ?>" class="btn btn-outline-light btn-sm ss-tool-btn"><span class="ss-tool-btn__icon" aria-hidden="true">🏆</span><span>Leaderboard</span></a>
+            <a href="<?= e(appPath('cyber_level.php')); ?>" class="btn btn-outline-light btn-sm ss-tool-btn"><span class="ss-tool-btn__icon" aria-hidden="true">🎯</span><span>Cyber Level</span></a>
         </div>
     </div>
 </div>

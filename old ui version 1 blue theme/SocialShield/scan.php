@@ -24,7 +24,7 @@ require_once __DIR__ . '/includes/header.php';
                     <input type="url" class="form-control form-control-lg ss-input ss-scan-input" id="url" name="url" placeholder="https://example.com/login" required>
                 </div>
                 <div class="d-flex flex-wrap gap-3 align-items-center ss-scan-actions">
-                    <button type="submit" class="btn btn-cyan btn-lg px-4">Nis skanimin</button>
+                    <button type="submit" class="btn ss-scan-submit btn-lg px-4">Nis skanimin</button>
                     <a href="<?= e(appPath('history.php')); ?>" class="btn btn-outline-light btn-lg">Historiku</a>
                 </div>
             </form>

@@ -72,6 +72,13 @@ require_once __DIR__ . '/includes/header.php';
                     </div>
                     <button type="submit" class="btn btn-primary w-100">Login</button>
                 </form>
+                <p class="text-center mt-3 mb-2">
+                    <a href="<?= e(appPath('reset_password.php')); ?>" class="text-info text-decoration-none">Forgot your password? Reset it here.</a>
+                </p>
+                <p class="text-center mb-0">
+                    <span class="text-muted">Don't have an account?</span>
+                    <a href="<?= e(appPath('register.php')); ?>" class="text-info text-decoration-none">Register here</a>
+                </p>
             </div>
         </div>
     </div>
