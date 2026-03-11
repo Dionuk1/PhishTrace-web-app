@@ -20,7 +20,7 @@ if (isset($_GET['lang'])) {
 
 $flash = getFlash();
 $user = currentUser();
-$pageTitle = $pageTitle ?? 'SocialShield';
+$pageTitle = $pageTitle ?? 'PhishTrace';
 $sessionLang = (string) ($_SESSION['lang'] ?? 'en');
 $selectedLang = in_array($sessionLang, ['en', 'sq'], true) ? $sessionLang : 'en';
 $txt = static fn(string $en, string $sq): string => $selectedLang === 'sq' ? $sq : $en;
@@ -51,7 +51,7 @@ if (!headers_sent()) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= e($pageTitle); ?> | SocialShield</title>
+    <title><?= e($pageTitle); ?> | PhishTrace</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
@@ -61,7 +61,7 @@ if (!headers_sent()) {
 <body class="ss-body">
 <nav class="navbar navbar-expand-lg navbar-dark ss-navbar">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="<?= e(appPath('index.php')); ?>">SocialShield</a>
+        <a class="navbar-brand fw-bold" href="<?= e(appPath('index.php')); ?>">PhishTrace</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -72,17 +72,17 @@ if (!headers_sent()) {
                 <li class="nav-item"><a class="nav-link" href="<?= e(appPath('history.php')); ?>"><?= e($txt('History', 'Historiku')); ?></a></li>
                 <li class="nav-item"><a class="nav-link" href="<?= e(appPath('tips.php')); ?>"><?= e($txt('Security Tips', 'Keshilla')); ?></a></li>
                 <?php if ($user && (($user['role'] ?? '') === 'admin')): ?>
-                    <li class="nav-item"><a class="nav-link" href="<?= e(appPath('admin/dashboard.php')); ?>">Admin</a></li>
+                    <li class="nav-item"><a class="nav-link" href="<?= e(appPath('admin/dashboard.php')); ?>">Admin Dashboard</a></li>
                 <?php endif; ?>
             </ul>
 
             <div class="ss-navbar-tools ms-lg-auto">
                 <div class="ss-lang-switch" aria-label="Language switcher">
-                    <a href="<?= e(appPath('settings.php?lang=en')); ?>" class="btn <?= $selectedLang === 'en' ? 'btn-cyan' : 'btn-outline-light'; ?> ss-lang-btn">
+                    <a href="<?= e(appPath('settings.php?lang=en')); ?>" class="btn ss-lang-btn <?= $selectedLang === 'en' ? 'ss-lang-btn--active' : ''; ?>">
                         <img class="ss-lang-flag" src="https://flagcdn.com/w40/us.png" alt="US flag" loading="lazy">
                         Anglisht
                     </a>
-                    <a href="<?= e(appPath('settings.php?lang=sq')); ?>" class="btn <?= $selectedLang === 'sq' ? 'btn-cyan' : 'btn-outline-light'; ?> ss-lang-btn">
+                    <a href="<?= e(appPath('settings.php?lang=sq')); ?>" class="btn ss-lang-btn <?= $selectedLang === 'sq' ? 'ss-lang-btn--active' : ''; ?>">
                         <img class="ss-lang-flag" src="https://flagcdn.com/w40/xk.png" alt="Kosovo flag" loading="lazy">
                         Shqip
                     </a>

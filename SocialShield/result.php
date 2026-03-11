@@ -210,8 +210,25 @@ require_once __DIR__ . '/includes/header.php';
     document.addEventListener('DOMContentLoaded', function () {
         var popupEl = document.getElementById('achievementPopup');
         if (!popupEl || typeof bootstrap === 'undefined') return;
+
         var modal = new bootstrap.Modal(popupEl);
+        var autoCloseTimer = null;
+        var closeDelay = 12000;
+
+        var clearAutoClose = function () {
+            if (autoCloseTimer !== null) {
+                window.clearTimeout(autoCloseTimer);
+                autoCloseTimer = null;
+            }
+        };
+
+        popupEl.addEventListener('hidden.bs.modal', clearAutoClose, { once: true });
+
         modal.show();
+
+        autoCloseTimer = window.setTimeout(function () {
+            modal.hide();
+        }, closeDelay);
     });
 </script>
 <?php endif; ?>

@@ -1022,6 +1022,20 @@ function getUserAchievementNotificationData(int $userId, PDO $pdo): array
 }
 
 /**
+ * Check whether a user record exists.
+ */
+function userExists(PDO $pdo, int $userId): bool
+{
+    if ($userId <= 0 || !isTableUsable($pdo, 'users')) {
+        return false;
+    }
+
+    $stmt = $pdo->prepare('SELECT id FROM users WHERE id = :id LIMIT 1');
+    $stmt->execute(['id' => $userId]);
+    return (bool) $stmt->fetchColumn();
+}
+
+/**
  * Save scan result to database for history.
  */
 function saveScan(int $userId, string $url, string $domain, int $riskScore, string $status, array $reasons, PDO $pdo): void
