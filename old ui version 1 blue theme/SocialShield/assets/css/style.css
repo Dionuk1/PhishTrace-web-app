@@ -1,4 +1,4 @@
-:root {
+﻿:root {
     --ss-bg: #040b16;
     --ss-bg-soft: #0d1830;
     --ss-panel: rgba(10, 22, 42, 0.84);
@@ -824,7 +824,7 @@ h6 {
     padding: 0.48rem 0.78rem;
     border-radius: 999px;
     border: 1px solid #EAB308;
-    background: linear-gradient(135deg, #FACC15, #EAB308);
+    background: #FACC15;
     color: #ffffff;
     text-decoration: none;
     font-size: 0.82rem;
@@ -833,8 +833,8 @@ h6 {
 
 .ss-cyber-pill:hover,
 .ss-cyber-pill:focus {
-    background: linear-gradient(135deg, #FCD34D, #FACC15);
-    border-color: #FACC15;
+    background: #FACC15;
+    border-color: #EAB308;
     color: #ffffff;
 }
 
@@ -1189,7 +1189,7 @@ h6 {
 }
 
 .ss-scan-submit {
-    background: linear-gradient(135deg, #FACC15, #EAB308);
+    background: #FACC15;
     border-color: #EAB308;
     color: #111827 !important;
     font-weight: 700;
@@ -1198,8 +1198,8 @@ h6 {
 
 .ss-scan-submit:hover,
 .ss-scan-submit:focus {
-    background: linear-gradient(135deg, #FCD34D, #FACC15);
-    border-color: #FACC15;
+    background: #FACC15;
+    border-color: #EAB308;
     color: #111827 !important;
 }
 
@@ -1296,4 +1296,5 @@ h6 {
         justify-content: center;
     }
 }
+
 
