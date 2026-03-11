@@ -5,9 +5,25 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/functions.php';
 
+if (isset($_GET['lang'])) {
+    $lang = strtolower(trim((string) $_GET['lang']));
+    if (in_array($lang, ['en', 'sq'], true)) {
+        $_SESSION['lang'] = $lang;
+    }
+
+    if (!headers_sent()) {
+        $path = (string) parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH);
+        header('Location: ' . $path);
+        exit;
+    }
+}
+
 $flash = getFlash();
 $user = currentUser();
 $pageTitle = $pageTitle ?? 'PhishTrace';
+$sessionLang = (string) ($_SESSION['lang'] ?? 'en');
+$selectedLang = in_array($sessionLang, ['en', 'sq'], true) ? $sessionLang : 'en';
+$txt = static fn(string $en, string $sq): string => $selectedLang === 'sq' ? $sq : $en;
 $achievementNotifications = [
     'latest_unlock' => null,
     'total_achievements' => 0,
@@ -24,7 +40,7 @@ if (!headers_sent()) {
 }
 ?>
 <!doctype html>
-<html lang="en">
+<html lang="<?= e($selectedLang); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -43,33 +59,36 @@ if (!headers_sent()) {
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarMain">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item"><a class="nav-link" href="<?= e(appPath('index.php')); ?>">Home</a></li>
-                <li class="nav-item"><a class="nav-link" href="<?= e(appPath('scan.php')); ?>">Scan URL</a></li>
-                <li class="nav-item"><a class="nav-link" href="<?= e(appPath('history.php')); ?>">History</a></li>
-                <li class="nav-item"><a class="nav-link" href="<?= e(appPath('tips.php')); ?>">Security Tips</a></li>
-                <?php if ($user && $user['role'] === 'admin'): ?>
-                    <li class="nav-item">
-                        <a class="nav-link" href="<?= e(appPath('admin/dashboard.php')); ?>">Admin</a>
-                    </li>
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0 ss-main-nav">
+                <li class="nav-item"><a class="nav-link" href="<?= e(appPath('index.php')); ?>"><?= e($txt('Home', 'Ballina')); ?></a></li>
+                <li class="nav-item"><a class="nav-link" href="<?= e(appPath('scan.php')); ?>"><?= e($txt('Scan URL', 'Skano URL')); ?></a></li>
+                <li class="nav-item"><a class="nav-link" href="<?= e(appPath('history.php')); ?>"><?= e($txt('History', 'Historiku')); ?></a></li>
+                <li class="nav-item"><a class="nav-link" href="<?= e(appPath('tips.php')); ?>"><?= e($txt('Security Tips', 'Keshilla')); ?></a></li>
+                <?php if ($user && (($user['role'] ?? '') === 'admin')): ?>
+                    <li class="nav-item"><a class="nav-link" href="<?= e(appPath('admin/dashboard.php')); ?>">Admin</a></li>
                 <?php endif; ?>
             </ul>
-            <ul class="navbar-nav align-items-lg-center gap-lg-2">
+
+            <div class="ss-navbar-tools ms-lg-auto">
+                <div class="ss-lang-switch" aria-label="Language switcher">
+                    <a href="<?= e(appPath('settings.php?lang=en')); ?>" class="btn <?= $selectedLang === 'en' ? 'btn-cyan' : 'btn-outline-light'; ?> ss-lang-btn">
+                        <img class="ss-lang-flag" src="https://flagcdn.com/w40/us.png" alt="US flag" loading="lazy">
+                        Anglisht
+                    </a>
+                    <a href="<?= e(appPath('settings.php?lang=sq')); ?>" class="btn <?= $selectedLang === 'sq' ? 'btn-cyan' : 'btn-outline-light'; ?> ss-lang-btn">
+                        <img class="ss-lang-flag" src="https://flagcdn.com/w40/xk.png" alt="Kosovo flag" loading="lazy">
+                        Shqip
+                    </a>
+                </div>
+
                 <?php if ($user): ?>
-                    <li class="nav-item dropdown">
-                        <button
-                            class="btn ss-notification-btn dropdown-toggle"
-                            type="button"
-                            data-bs-toggle="dropdown"
-                            data-bs-auto-close="outside"
-                            aria-expanded="false"
-                            aria-label="Achievement notifications">
+                    <div class="dropdown">
+                        <button class="btn ss-notification-btn ss-notification-btn--icon dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Achievement notifications">
                             <span class="ss-notification-btn__icon" aria-hidden="true">
                                 <svg viewBox="0 0 24 24" focusable="false">
                                     <path d="M12 3a4 4 0 0 0-4 4v1.2c0 .7-.2 1.4-.6 2L6 12.5V15h12v-2.5l-1.4-3.3a4.8 4.8 0 0 1-.6-2V7a4 4 0 0 0-4-4Zm0 18a2.8 2.8 0 0 1-2.6-2h5.2A2.8 2.8 0 0 1 12 21Z"></path>
                                 </svg>
                             </span>
-                            <span class="ss-notification-btn__label">Notifications</span>
                             <span class="ss-notification-badge"><?= (int) $achievementNotifications['total_achievements']; ?></span>
                         </button>
                         <div class="dropdown-menu dropdown-menu-end ss-notification-menu p-0">
@@ -112,14 +131,24 @@ if (!headers_sent()) {
                                 <?php endif; ?>
                             </div>
                         </div>
-                    </li>
-                    <li class="nav-item"><span class="nav-link">Hi, <?= e($user['name']); ?></span></li>
-                    <li class="nav-item"><a class="nav-link" href="<?= e(appPath('logout.php')); ?>">Logout</a></li>
+                    </div>
+
+                    <div class="dropdown">
+                        <button class="btn ss-profile-toggle dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <?= e((string) $user['name']); ?>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end ss-profile-menu">
+                            <li><a class="dropdown-item" href="<?= e(appPath('profile.php')); ?>">Profili</a></li>
+                            <li><a class="dropdown-item" href="<?= e(appPath('settings.php')); ?>">Cilesimet</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="<?= e(appPath('logout.php')); ?>">Dil</a></li>
+                        </ul>
+                    </div>
                 <?php else: ?>
-                    <li class="nav-item"><a class="nav-link" href="<?= e(appPath('login.php')); ?>">Login</a></li>
-                    <li class="nav-item"><a class="nav-link" href="<?= e(appPath('register.php')); ?>">Register</a></li>
+                    <a class="nav-link" href="<?= e(appPath('login.php')); ?>">Login</a>
+                    <a class="nav-link" href="<?= e(appPath('register.php')); ?>">Register</a>
                 <?php endif; ?>
-            </ul>
+            </div>
         </div>
     </div>
 </nav>
@@ -131,4 +160,3 @@ if (!headers_sent()) {
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     <?php endif; ?>
-

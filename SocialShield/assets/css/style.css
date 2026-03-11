@@ -25,6 +25,9 @@
     background: linear-gradient(90deg, var(--ss-bg) 0%, var(--ss-bg-soft) 100%);
     box-shadow: 0 8px 24px rgba(1, 10, 22, 0.5);
     border-bottom: 1px solid rgba(61, 242, 194, 0.12);
+    position: sticky;
+    top: 0;
+    z-index: 1400;
 }
 
 .ss-hero {

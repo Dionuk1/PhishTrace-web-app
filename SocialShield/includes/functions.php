@@ -802,10 +802,13 @@ function analyzeUrl(string $inputUrl, PDO $pdo): array
     if ($host !== '') {
         $stmt = $pdo->prepare(
             "SELECT domain, reason FROM blacklist_domains
-             WHERE :host = domain OR :host LIKE CONCAT('%.', domain)
+             WHERE :host_exact = domain OR :host_sub LIKE CONCAT('%.', domain)
              LIMIT 1"
         );
-        $stmt->execute(['host' => $host]);
+        $stmt->execute([
+            'host_exact' => $host,
+            'host_sub' => $host,
+        ]);
         $blacklistRow = $stmt->fetch();
         if ($blacklistRow) {
             $isBlacklisted = true;
@@ -848,10 +851,10 @@ function analyzeUrl(string $inputUrl, PDO $pdo): array
     if ($host !== '' && !$isBlacklisted) {
         $stmt = $pdo->prepare(
             "SELECT domain FROM whitelist_domains
-             WHERE :host = domain OR :host LIKE CONCAT('%.', domain)
+             WHERE :host_exact = domain OR :host_sub LIKE CONCAT('%.' , domain)
              LIMIT 1"
         );
-        $stmt->execute(['host' => $host]);
+        $stmt->execute(['host_exact' => $host, 'host_sub' => $host]);
         if ($stmt->fetch()) {
             $details[] = 'Domain exists in whitelist data.';
         }
@@ -1078,3 +1081,157 @@ function socialSafetyRecommendations(): array
     ];
 }
 
+
+if (!function_exists('setCurrentLanguage')) {
+    function setCurrentLanguage(string $lang): void
+    {
+        $lang = strtolower(trim($lang));
+        $_SESSION['lang'] = in_array($lang, ['en', 'sq'], true) ? $lang : 'en';
+    }
+}
+
+if (!function_exists('currentLanguage')) {
+    function currentLanguage(): string
+    {
+        $lang = (string) ($_SESSION['lang'] ?? 'en');
+        return in_array($lang, ['en', 'sq'], true) ? $lang : 'en';
+    }
+}
+
+if (!function_exists('tr')) {
+    function tr(string $en, string $sq): string
+    {
+        return currentLanguage() === 'sq' ? $sq : $en;
+    }
+}
+
+if (!function_exists('t')) {
+    function t(string $key): string
+    {
+        static $dict = [
+            'en' => [
+                'invalid_csrf' => 'Invalid CSRF token.',
+                'language_saved' => 'Language saved.',
+                'settings' => 'Settings',
+                'language_settings' => 'Language Settings',
+                'choose_language' => 'Choose your preferred language.',
+                'english' => 'English',
+                'albanian' => 'Albanian',
+            ],
+            'sq' => [
+                'invalid_csrf' => 'Token CSRF i pavlefshem.',
+                'language_saved' => 'Gjuha u ruajt.',
+                'settings' => 'Cilesimet',
+                'language_settings' => 'Cilesimet e Gjuhes',
+                'choose_language' => 'Zgjidh gjuhen e preferuar.',
+                'english' => 'Anglisht',
+                'albanian' => 'Shqip',
+            ],
+        ];
+
+        $lang = currentLanguage();
+        $value = $dict[$lang][$key] ?? $dict['en'][$key] ?? null;
+        if ($value !== null) {
+            return $value;
+        }
+
+        return ucwords(str_replace('_', ' ', $key));
+    }
+}
+
+if (!function_exists('languageFlagUrl')) {
+    function languageFlagUrl(string $lang): string
+    {
+        return strtolower($lang) === 'sq' ? 'https://flagcdn.com/w40/xk.png' : 'https://flagcdn.com/w40/us.png';
+    }
+}
+if (!function_exists('displayStatusLabel')) {
+    function displayStatusLabel(string $status): string
+    {
+        $normalized = strtolower(trim($status));
+        return match ($normalized) {
+            'success' => 'Success',
+            'failed', 'failure', 'danger', 'error' => 'Failed',
+            default => ucfirst($status),
+        };
+    }
+}
+
+if (!function_exists('ssBackupDirectory')) {
+    function ssBackupDirectory(): string
+    {
+        $dir = realpath(__DIR__ . '/..') . DIRECTORY_SEPARATOR . 'backups';
+        if (!is_dir($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) {
+            throw new RuntimeException('Could not create backups directory.');
+        }
+        return $dir;
+    }
+}
+
+if (!function_exists('createUsersBackup')) {
+    function createUsersBackup(PDO $pdo, string $label = 'manual'): ?array
+    {
+        if (!isTableUsable($pdo, 'users')) {
+            return null;
+        }
+
+        $backupDir = ssBackupDirectory();
+        $stamp = date('Ymd_His');
+        $safeLabel = preg_replace('/[^a-zA-Z0-9_-]/', '_', $label) ?: 'backup';
+        $csvPath = $backupDir . DIRECTORY_SEPARATOR . "users_{$safeLabel}_{$stamp}.csv";
+
+        $rows = $pdo->query('SELECT * FROM users ORDER BY id ASC')->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $columns = $rows !== [] ? array_keys($rows[0]) : ['id', 'name', 'email', 'password_hash', 'role', 'security_score', 'created_at'];
+
+        $fh = fopen($csvPath, 'wb');
+        if ($fh === false) {
+            return null;
+        }
+
+        fputcsv($fh, $columns);
+        foreach ($rows as $row) {
+            $line = [];
+            foreach ($columns as $col) {
+                $line[] = $row[$col] ?? null;
+            }
+            fputcsv($fh, $line);
+        }
+        fclose($fh);
+
+        return ['csv' => $csvPath, 'rows' => count($rows)];
+    }
+}
+
+if (!function_exists('createScansBackup')) {
+    function createScansBackup(PDO $pdo, string $label = 'manual'): ?array
+    {
+        if (!isTableUsable($pdo, 'scans')) {
+            return null;
+        }
+
+        $backupDir = ssBackupDirectory();
+        $stamp = date('Ymd_His');
+        $safeLabel = preg_replace('/[^a-zA-Z0-9_-]/', '_', $label) ?: 'backup';
+        $csvPath = $backupDir . DIRECTORY_SEPARATOR . "scans_{$safeLabel}_{$stamp}.csv";
+
+        $rows = $pdo->query('SELECT * FROM scans ORDER BY id ASC')->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $columns = $rows !== [] ? array_keys($rows[0]) : ['id', 'user_id', 'url', 'domain', 'risk_score', 'status', 'reasons', 'scanned_at'];
+
+        $fh = fopen($csvPath, 'wb');
+        if ($fh === false) {
+            return null;
+        }
+
+        fputcsv($fh, $columns);
+        foreach ($rows as $row) {
+            $line = [];
+            foreach ($columns as $col) {
+                $line[] = $row[$col] ?? null;
+            }
+            fputcsv($fh, $line);
+        }
+        fclose($fh);
+
+        return ['csv' => $csvPath, 'rows' => count($rows)];
+    }
+}

@@ -207,8 +207,7 @@ function ensureCoreTables(PDO $pdo): void
 }
 
 /**
- * Prefer a clean `phishtrace` database and create it if needed.
- * Falls back to existing `social shield` only when create permission is unavailable.
+ * Use configured DB_NAME, with fallback lookup for legacy local database names.
  */
 function resolveDatabaseName(PDO $serverPdo): string
 {
@@ -219,7 +218,7 @@ function resolveDatabaseName(PDO $serverPdo): string
         // Fallback for restricted users without CREATE DATABASE permission.
     }
 
-    foreach (['social shield', DB_NAME] as $candidate) {
+    foreach ([DB_NAME, 'socialshield', 'social shield'] as $candidate) {
         $stmt = $serverPdo->prepare(
             'SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = :name LIMIT 1'
         );
@@ -246,14 +245,14 @@ function ensureDemoAdmin(PDO $pdo): void
         'INSERT INTO users (name, email, password_hash, role) VALUES (:name, :email, :password_hash, :role)'
     );
     $stmt->execute([
-        'name' => 'PhishTrace Admin',
-        'email' => 'admin@phishtrace.local',
+        'name' => 'SocialShield Admin',
+        'email' => 'admin@socialshield.local',
         'password_hash' => password_hash('Admin123!', PASSWORD_DEFAULT),
         'role' => 'admin',
     ]);
     $stmt->execute([
         'name' => 'Student Demo',
-        'email' => 'student@phishtrace.local',
+        'email' => 'student@socialshield.local',
         'password_hash' => password_hash('Student123!', PASSWORD_DEFAULT),
         'role' => 'user',
     ]);
@@ -382,9 +381,9 @@ function getPDO(): PDO
         http_response_code(500);
         exit(
             'Database connection failed.' . PHP_EOL .
-            '1) Open phpMyAdmin and create database phishtrace (or social shield)' . PHP_EOL .
-            '2) Import C:\\xampp\\htdocs\\phishtrace\\database\\phishtrace.sql' . PHP_EOL .
-            '3) Open http://localhost/phishtrace'
+            '1) Open phpMyAdmin and create database socialshield' . PHP_EOL .
+            '2) Import your socialshield SQL backup' . PHP_EOL .
+            '3) Open http://localhost/socialshield'
         );
     }
 
