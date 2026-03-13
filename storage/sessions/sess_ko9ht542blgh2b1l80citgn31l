@@ -1,0 +1,1 @@
+csrf_token|s:64:"cb1e924f1a0740f8dbff87343cc3bb28038d423c2f15d2f54416b55afdacf05d";user|a:4:{s:2:"id";i:2;s:4:"name";s:12:"Student Demo";s:5:"email";s:26:"student@socialshield.local";s:4:"role";s:4:"user";}flash|a:2:{s:7:"message";s:12:"welcome_back";s:4:"type";s:7:"success";}

@@ -1,0 +1,1 @@
+csrf_token|s:64:"9ddf4eb88ed071a20f41371655aaf0bfbb4042e8392348fdd6dbc5aa01c71d08";user|a:4:{s:2:"id";i:0;s:4:"name";s:13:"Codex DB Test";s:5:"email";s:32:"codexdb20260310224044@local.test";s:4:"role";s:4:"user";}flash|a:2:{s:7:"message";s:20:"Registration Success";s:4:"type";s:7:"success";}

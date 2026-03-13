@@ -1,0 +1,2 @@
+id,user_id,url,domain,risk_score,status,reasons,scanned_at
+1,2,https://www.google.com,google.com,0,Safe,"[""No suspicious indicators triggered.""]","2026-03-10 23:07:14"

@@ -1,0 +1,3 @@
+id,name,email,password_hash,role,security_score,created_at
+1,"SocialShield Admin",admin@socialshield.local,$2y$10$TcET6usv0n.e2nFc7b3bDe0Tmc6lY9h94VqVq/996uM5dh/ghEKl6,admin,0,"2026-03-09 04:29:44"
+2,"Student Demo",student@socialshield.local,$2y$10$EeH.x0d3.tV28dscL4chAu7D4qtAJJjoisDoMD.uJb6ZZYkURbIOu,user,0,"2026-03-09 04:29:44"

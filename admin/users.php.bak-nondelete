@@ -1,0 +1,163 @@
+<?php
+declare(strict_types=1);
+
+require_once __DIR__ . '/../includes/functions.php';
+requireLogin();
+requireAdmin();
+
+$pdo = getPDO();
+$current = currentUser();
+$editUser = null;
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!verifyCsrfToken($_POST['csrf_token'] ?? null)) {
+        setFlash(t('invalid_csrf'), 'danger');
+        redirect('admin/users.php');
+    }
+
+    $action = (string) ($_POST['action'] ?? '');
+    if ($action === 'update_name') {
+        $userId = (int) ($_POST['user_id'] ?? 0);
+        $name = trim((string) ($_POST['name'] ?? ''));
+
+        if ($userId <= 0 || $name === '') {
+            setFlash(tr('Valid user and name are required.', 'Kërkohet përdorues dhe emër i vlefshëm.'), 'warning');
+            redirect('admin/users.php');
+        }
+
+        $updateStmt = $pdo->prepare('UPDATE users SET name = :name WHERE id = :id');
+        $updateStmt->execute([
+            'name' => $name,
+            'id' => $userId,
+        ]);
+
+        setFlash(tr('User name updated.', 'Emri i përdoruesit u përditësua.'), 'success');
+        redirect('admin/users.php');
+    }
+
+    if ($action === 'delete') {
+        $userId = (int) ($_POST['user_id'] ?? 0);
+        if ($userId > 0) {
+            if ($userId === (int) ($current['id'] ?? 0)) {
+                setFlash(tr('You cannot delete your own active account.', 'Nuk mund të fshish llogarinë tënde aktive.'), 'warning');
+                redirect('admin/users.php');
+            }
+
+            $roleStmt = $pdo->prepare('SELECT role FROM users WHERE id = :id LIMIT 1');
+            $roleStmt->execute(['id' => $userId]);
+            $target = $roleStmt->fetch();
+
+            if ($target && ($target['role'] ?? '') === 'admin') {
+                $adminCount = (int) $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'admin'")->fetchColumn();
+                if ($adminCount <= 1) {
+                    setFlash(tr('Cannot delete the last admin account.', 'Nuk mund të fshihet admini i fundit.'), 'warning');
+                    redirect('admin/users.php');
+                }
+            }
+
+            $deleteStmt = $pdo->prepare('DELETE FROM users WHERE id = :id');
+            $deleteStmt->execute(['id' => $userId]);
+            setFlash(tr('User account deleted.', 'Llogaria e përdoruesit u fshi.'), 'info');
+        }
+        redirect('admin/users.php');
+    }
+}
+
+if (isset($_GET['edit'])) {
+    $editId = (int) $_GET['edit'];
+    if ($editId > 0) {
+        $editStmt = $pdo->prepare('SELECT id, name, email, role FROM users WHERE id = :id LIMIT 1');
+        $editStmt->execute(['id' => $editId]);
+        $editUser = $editStmt->fetch() ?: null;
+    }
+}
+
+$stmt = $pdo->query(
+    "SELECT id, name, email, role, created_at
+     FROM users
+     ORDER BY created_at DESC"
+);
+$users = $stmt->fetchAll();
+
+$pageTitle = t('admin_users');
+require_once __DIR__ . '/../includes/header.php';
+?>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="h4 mb-0"><?= e(tr('Registered Users', 'Përdoruesit e Regjistruar')); ?></h2>
+    <a class="btn btn-outline-light btn-sm" href="<?= e(appPath('admin/dashboard.php')); ?>"><?= e(tr('Back to Dashboard', 'Kthehu te Paneli')); ?></a>
+</div>
+
+<?php if ($editUser): ?>
+    <div class="card ss-card mb-3">
+        <div class="card-body">
+            <h3 class="h5 mb-3"><?= e(tr('Edit User Name', 'Ndrysho Emrin e Përdoruesit')); ?></h3>
+            <form method="post" action="<?= e(appPath('admin/users.php')); ?>" class="row g-3 align-items-end">
+                <input type="hidden" name="csrf_token" value="<?= e(csrfToken()); ?>">
+                <input type="hidden" name="action" value="update_name">
+                <input type="hidden" name="user_id" value="<?= (int) $editUser['id']; ?>">
+                <div class="col-md-4">
+                    <label class="form-label"><?= e(t('email')); ?></label>
+                    <input type="text" class="form-control" value="<?= e((string) $editUser['email']); ?>" disabled>
+                </div>
+                <div class="col-md-4">
+                    <label for="name" class="form-label"><?= e(t('name_label')); ?></label>
+                    <input type="text" id="name" name="name" class="form-control" value="<?= e((string) $editUser['name']); ?>" required>
+                </div>
+                <div class="col-md-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-cyan"><?= e(tr('Save Name', 'Ruaj Emrin')); ?></button>
+                    <a href="<?= e(appPath('admin/users.php')); ?>" class="btn btn-outline-light"><?= e(tr('Cancel', 'Anulo')); ?></a>
+                </div>
+            </form>
+        </div>
+    </div>
+<?php endif; ?>
+
+<div class="card ss-card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-dark table-striped align-middle mb-0">
+                <thead>
+                <tr>
+                    <th><?= e(tr('ID', 'ID')); ?></th>
+                    <th><?= e(t('name_label')); ?></th>
+                    <th><?= e(t('email')); ?></th>
+                    <th><?= e(t('role_label')); ?></th>
+                    <th><?= e(tr('Created', 'Krijuar')); ?></th>
+                    <th><?= e(tr('Action', 'Veprimi')); ?></th>
+                </tr>
+                </thead>
+                <tbody>
+                <?php foreach ($users as $user): ?>
+                    <tr>
+                        <td><?= (int) $user['id']; ?></td>
+                        <td><?= e((string) $user['name']); ?></td>
+                        <td><?= e((string) $user['email']); ?></td>
+                        <td>
+                            <span class="badge text-bg-<?= ($user['role'] === 'admin') ? 'info' : 'secondary'; ?>">
+                                <?= e((string) $user['role']); ?>
+                            </span>
+                        </td>
+                        <td><?= e((string) $user['created_at']); ?></td>
+                        <td>
+                            <?php if ((int) $user['id'] === (int) ($current['id'] ?? 0)): ?>
+                                <span class="text-muted small"><?= e(tr('Current account', 'Llogaria aktuale')); ?></span>
+                            <?php else: ?>
+                                <a href="<?= e(appPath('admin/users.php')); ?>?edit=<?= (int) $user['id']; ?>" class="btn btn-sm btn-outline-info"><?= e(tr('Edit', 'Ndrysho')); ?></a>
+                                <form method="post" action="<?= e(appPath('admin/users.php')); ?>" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="<?= e(csrfToken()); ?>">
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="user_id" value="<?= (int) $user['id']; ?>">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger js-confirm-delete"><?= e(tr('Delete', 'Fshij')); ?></button>
+                                </form>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<?php require_once __DIR__ . '/../includes/footer.php'; ?>

@@ -1,0 +1,7 @@
+id,user_id,url,risk_score,status,reasons,scanned_at
+3,1,https://www.google.com,0,Safe,"[""No suspicious indicators triggered.""]","2026-03-09 04:44:26"
+4,1,https://github.com@evil-login-check.top/reset,50,Dangerous,"[""Suspicious keyword(s) detected: login, reset (+15)"",""URL contains @ symbol which may hide the real domain (+20)"",""Suspicious top-level domain detected (+15)""]","2026-03-09 04:50:53"
+5,1,http://faceb00k-security-alert.com/login/verify(shouldbedangerous),80,Dangerous,"[""URL does not use HTTPS (+20)"",""Suspicious keyword(s) detected: login, verify (+15)"",""URL contains login-related path commonly used in phishing pages (+15)"",""Possible brand impersonation detected (+30)""]","2026-03-09 04:52:42"
+6,1,http://faceb00k-security-alert.com/login/verify(shouldbedangerous),80,Dangerous,"[""URL does not use HTTPS (+20)"",""Suspicious keyword(s) detected: login, verify (+15)"",""URL contains login-related path commonly used in phishing pages (+15)"",""Possible brand impersonation detected (+30)""]","2026-03-09 04:57:45"
+7,1,http://faceb00k-security-alert.com/login/verify(shouldbedangerous),80,Dangerous,"[""URL does not use HTTPS (+20)"",""Suspicious keyword(s) detected: login, verify (+15)"",""URL contains login-related path commonly used in phishing pages (+15)"",""Possible brand impersonation detected (+30)""]","2026-03-09 04:58:26"
+8,2,https://www.google.com,0,Safe,"[""No suspicious indicators triggered.""]","2026-03-09 04:58:52"
