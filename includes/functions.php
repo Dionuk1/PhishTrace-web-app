@@ -1019,26 +1019,6 @@ function getUserAchievementNotificationData(int $userId, PDO $pdo): array
 
     awardUserAchievements($userId, $pdo);
 
-    $summaryStmt = $pdo->prepare(
-        'SELECT COUNT(*) AS total_achievements, COALESCE(SUM(a.points), 0) AS total_points
-         FROM user_achievements ua
-         INNER JOIN achievements a ON a.id = ua.achievement_id
-         WHERE ua.user_id = :user_id'
-    );
-    $summaryStmt->execute(['user_id' => $userId]);
-    $summary = $summaryStmt->fetch() ?: [];
-
-    $latestStmt = $pdo->prepare(
-        'SELECT a.title, a.description, a.points, ua.unlocked_at
-         FROM user_achievements ua
-         INNER JOIN achievements a ON a.id = ua.achievement_id
-         WHERE ua.user_id = :user_id
-         ORDER BY ua.unlocked_at DESC, ua.id DESC
-         LIMIT 1'
-    );
-    $latestStmt->execute(['user_id' => $userId]);
-    $latestUnlock = $latestStmt->fetch() ?: null;
-
     $listStmt = $pdo->prepare(
         'SELECT a.title, a.description, a.points, ua.unlocked_at
          FROM user_achievements ua
@@ -1047,12 +1027,16 @@ function getUserAchievementNotificationData(int $userId, PDO $pdo): array
          ORDER BY ua.unlocked_at DESC, ua.id DESC'
     );
     $listStmt->execute(['user_id' => $userId]);
+    $achievements = $listStmt->fetchAll() ?: [];
 
     return [
-        'latest_unlock' => $latestUnlock,
-        'total_achievements' => (int) ($summary['total_achievements'] ?? 0),
-        'total_points' => (int) ($summary['total_points'] ?? 0),
-        'achievements' => $listStmt->fetchAll() ?: [],
+        'latest_unlock' => $achievements[0] ?? null,
+        'total_achievements' => count($achievements),
+        'total_points' => array_sum(array_map(
+            static fn (array $achievement): int => (int) ($achievement['points'] ?? 0),
+            $achievements
+        )),
+        'achievements' => $achievements,
     ];
 }
 

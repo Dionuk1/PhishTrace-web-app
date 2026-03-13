@@ -3,11 +3,88 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/includes/functions.php';
 
+function isRateLimited(): bool
+{
+    $clientIpHash = hash('sha256', (string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
+    $sessionKey = 'login_rate_limit_' . $clientIpHash;
+    $state = $_SESSION[$sessionKey] ?? null;
+
+    if (!is_array($state)) {
+        return false;
+    }
+
+    $blockedUntil = (int) ($state['blocked_until'] ?? 0);
+    if ($blockedUntil <= time()) {
+        unset($_SESSION[$sessionKey]);
+        return false;
+    }
+
+    return true;
+}
+
+function recordFailedAttempt(): void
+{
+    $clientIpHash = hash('sha256', (string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
+    $sessionKey = 'login_rate_limit_' . $clientIpHash;
+    $state = $_SESSION[$sessionKey] ?? ['failed_attempts' => 0, 'blocked_until' => 0];
+
+    if (!is_array($state)) {
+        $state = ['failed_attempts' => 0, 'blocked_until' => 0];
+    }
+
+    if ((int) ($state['blocked_until'] ?? 0) > time()) {
+        $_SESSION[$sessionKey] = $state;
+        return;
+    }
+
+    $failedAttempts = (int) ($state['failed_attempts'] ?? 0) + 1;
+    $blockedUntil = 0;
+
+    if ($failedAttempts >= 5) {
+        $blockedUntil = time() + (15 * 60);
+        $failedAttempts = 0;
+    }
+
+    $_SESSION[$sessionKey] = [
+        'failed_attempts' => $failedAttempts,
+        'blocked_until' => $blockedUntil,
+    ];
+}
+
+function clearRateLimit(): void
+{
+    $clientIpHash = hash('sha256', (string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
+    $sessionKey = 'login_rate_limit_' . $clientIpHash;
+    unset($_SESSION[$sessionKey]);
+}
+
+function rateLimitSecondsRemaining(): int
+{
+    $clientIpHash = hash('sha256', (string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
+    $sessionKey = 'login_rate_limit_' . $clientIpHash;
+    $state = $_SESSION[$sessionKey] ?? null;
+
+    if (!is_array($state)) {
+        return 0;
+    }
+
+    return max(0, (int) ($state['blocked_until'] ?? 0) - time());
+}
+
 if (isLoggedIn()) {
     redirect('index.php');
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isRateLimited()) {
+        $minutesRemaining = (int) ceil(rateLimitSecondsRemaining() / 60);
+        setFlash(
+            'Too many failed login attempts. Please wait ' . $minutesRemaining . ' minute(s) before trying again.',
+            'danger'
+        );
+        redirect('login.php');
+    }
+
     if (!verifyCsrfToken($_POST['csrf_token'] ?? null)) {
         setFlash('Invalid CSRF token.', 'danger');
         redirect('login.php');
@@ -27,10 +104,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user = $stmt->fetch();
 
     if (!$user || !password_verify($password, (string) $user['password_hash'])) {
+        recordFailedAttempt();
+
+        if (isRateLimited()) {
+            $minutesRemaining = (int) ceil(rateLimitSecondsRemaining() / 60);
+            setFlash(
+                'Too many failed login attempts. Please wait ' . $minutesRemaining . ' minute(s) before trying again.',
+                'danger'
+            );
+            redirect('login.php');
+        }
+
         setFlash('Email or password is incorrect.', 'danger');
         redirect('login.php');
     }
 
+    clearRateLimit();
     loginUser($user);
     setFlash('Login successful.', 'success');
     if (($user['role'] ?? '') === 'admin') {
