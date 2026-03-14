@@ -1,5 +1,5 @@
 <?php
-// Automatic threat intelligence updater for SocialShield.
+// Automatic threat intelligence updater for PhishTrace.
 // This script is safe for scheduler execution every 30 minutes.
 
 declare(strict_types=1);

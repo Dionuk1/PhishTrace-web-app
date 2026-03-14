@@ -1,5 +1,5 @@
 <?php
-// OpenPhish threat intelligence import agent for SocialShield.
+// OpenPhish threat intelligence import agent for PhishTrace.
 
 declare(strict_types=1);
 

@@ -29,7 +29,7 @@ if (!defined('DB_HOST')) {
 
 if (!defined('DB_NAME')) {
     // Default to legacy local DB so existing users are not "lost" after branding changes.
-    define('DB_NAME', getenv('PHISHTRACE_DB_NAME') ?: (getenv('SOCIALSHIELD_DB_NAME') ?: 'socialshield'));
+    define('DB_NAME', getenv('PHISHTRACE_DB_NAME') ?: (getenv('SOCIALSHIELD_DB_NAME') ?: 'phishtrace'));
 }
 
 if (!defined('DB_USER')) {

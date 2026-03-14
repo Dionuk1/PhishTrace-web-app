@@ -245,7 +245,7 @@ function ensureDemoAdmin(PDO $pdo): void
         'INSERT INTO users (name, email, password_hash, role) VALUES (:name, :email, :password_hash, :role)'
     );
     $stmt->execute([
-        'name' => 'SocialShield Admin',
+        'name' => 'PhishTrace Admin',
         'email' => 'admin@socialshield.local',
         'password_hash' => password_hash('Admin123!', PASSWORD_DEFAULT),
         'role' => 'admin',

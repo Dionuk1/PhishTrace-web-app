@@ -11,7 +11,7 @@ require_once __DIR__ . '/includes/header.php';
         <div class="row g-4 align-items-stretch">
             <div class="col-lg-7">
                 <div class="ss-hero-main h-100">
-                    <h1 class="display-5 fw-bold">Stay safer on social networks with SocialShield</h1>
+                    <h1 class="display-5 fw-bold">Stay safer on social networks with PhishTrace</h1>
                     <p class="fs-5 ss-hero-copy">
                         This beginner-friendly web app demonstrates rule-based phishing link detection,
                         privacy awareness, and secure coding basics in PHP.
