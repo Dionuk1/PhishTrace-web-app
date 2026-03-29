@@ -94,6 +94,102 @@ function csrfToken(): string
 /**
  * Validate CSRF token from POST request.
  */
+<?php
+// General helper functions and URL risk analysis engine.
+
+declare(strict_types=1);
+
+require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/auth.php';
+
+/**
+ * Build base URL like "/phishtrace" regardless of current script depth.
+ */
+function appBaseUrl(): string
+{
+    static $base = null;
+
+    if ($base !== null) {
+        return $base;
+    }
+
+    $scriptName = str_replace('\\', '/', (string) ($_SERVER['SCRIPT_NAME'] ?? ''));
+    if (str_contains($scriptName, '/admin/')) {
+        $base = (string) preg_replace('#/admin/.*$#', '', $scriptName);
+    } else {
+        $base = str_replace('\\', '/', dirname($scriptName));
+    }
+
+    if ($base === '.' || $base === '/') {
+        $base = '';
+    }
+
+    return rtrim($base, '/');
+}
+
+/**
+ * Build absolute in-app URL path.
+ */
+function appPath(string $path = ''): string
+{
+    $cleanPath = ltrim($path, '/');
+    $base = appBaseUrl();
+    return $base . ($cleanPath !== '' ? '/' . $cleanPath : '');
+}
+
+/**
+ * Basic output escaping for HTML.
+ */
+function e(?string $value): string
+{
+    return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+}
+
+/**
+ * Redirect and stop script execution.
+ */
+function redirect(string $path): void
+{
+    header('Location: ' . appPath($path));
+    exit;
+}
+
+/**
+ * Flash message setter.
+ */
+function setFlash(string $message, string $type = 'info'): void
+{
+    $_SESSION['flash'] = ['message' => $message, 'type' => $type];
+}
+
+/**
+ * Flash message getter (one-time).
+ */
+function getFlash(): ?array
+{
+    if (!isset($_SESSION['flash'])) {
+        return null;
+    }
+
+    $flash = $_SESSION['flash'];
+    unset($_SESSION['flash']);
+    return $flash;
+}
+
+/**
+ * Generate and return CSRF token for forms.
+ */
+function csrfToken(): string
+{
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+/**
+ * Validate CSRF token from POST request.
+ */
 function verifyCsrfToken(?string $token): bool
 {
     if (empty($_SESSION['csrf_token']) || empty($token)) {
@@ -101,6 +197,26 @@ function verifyCsrfToken(?string $token): bool
     }
 
     return hash_equals($_SESSION['csrf_token'], $token);
+}
+
+/**
+ * Check action rate limiting to prevent brute force and abuse.
+ */
+function checkRateLimit(string $key, int $maxAttempts = 5, int $windowSec = 300): bool
+{
+    $now = time();
+    $sessionKey = 'rl_' . $key;
+    
+    $data = $_SESSION[$sessionKey] ?? ['count' => 0, 'reset_at' => $now + $windowSec];
+    
+    if ($now > $data['reset_at']) {
+        $data = ['count' => 0, 'reset_at' => $now + $windowSec];
+    }
+    
+    $data['count']++;
+    $_SESSION[$sessionKey] = $data;
+    
+    return $data['count'] <= $maxAttempts;
 }
 
 /**
@@ -1038,7 +1154,7 @@ function userExists(PDO $pdo, int $userId): bool
 /**
  * Save scan result to database for history.
  */
-function saveScan(int $userId, string $url, string $domain, int $riskScore, string $status, array $reasons, PDO $pdo): void
+function saveScan(int $userId, string $url, string $domain, int $riskScore, string $status, array $reasons, PDO $pdo): int
 {
     $payload = [
         'user_id' => $userId,
@@ -1063,6 +1179,7 @@ function saveScan(int $userId, string $url, string $domain, int $riskScore, stri
     }
 
     $stmt->execute($payload);
+    $scanId = (int) $pdo->lastInsertId();
 
     if (tableHasColumn($pdo, 'users', 'security_score')) {
         $scorePoints = securityPointsByStatus($status);
@@ -1079,6 +1196,8 @@ function saveScan(int $userId, string $url, string $domain, int $riskScore, stri
     }
 
     awardUserAchievements($userId, $pdo);
+    
+    return $scanId;
 }
 
 /**
@@ -1149,7 +1268,7 @@ if (!function_exists('t')) {
             return $value;
         }
 
-        return ucwords(str_replace('_', ' ', $key));
+        return ucwords(str_replace('_', 'key'));
     }
 }
 
@@ -1159,6 +1278,7 @@ if (!function_exists('languageFlagUrl')) {
         return strtolower($lang) === 'sq' ? 'https://flagcdn.com/w40/xk.png' : 'https://flagcdn.com/w40/us.png';
     }
 }
+
 if (!function_exists('displayStatusLabel')) {
     function displayStatusLabel(string $status): string
     {
@@ -1174,11 +1294,27 @@ if (!function_exists('displayStatusLabel')) {
 if (!function_exists('ssBackupDirectory')) {
     function ssBackupDirectory(): string
     {
-        $dir = realpath(__DIR__ . '/..') . DIRECTORY_SEPARATOR . 'backups';
-        if (!is_dir($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) {
+        $webRoot = realpath(__DIR__ . '/..');
+        $storageRoot = $webRoot . DIRECTORY_SEPARATOR . 'storage';
+        $backupDir = $storageRoot . DIRECTORY_SEPARATOR . 'backups';
+        
+        if (!is_dir($storageRoot)) {
+            if (!mkdir($storageRoot, 0700, true) && !is_dir($storageRoot)) {
+                throw new RuntimeException('Could not create storage directory.');
+            }
+            
+            file_put_contents(
+                $storageRoot . DIRECTORY_SEPARATOR . '.htaccess',
+                "# Security: Deny all web access to storage directory\n" .
+                "Require all denied\n"
+            );
+        }
+        
+        if (!is_dir($backupDir) && !mkdir($backupDir, 0700, true) && !is_dir($backupDir)) {
             throw new RuntimeException('Could not create backups directory.');
         }
-        return $dir;
+        
+        return $backupDir;
     }
 }
 
@@ -1194,8 +1330,8 @@ if (!function_exists('createUsersBackup')) {
         $safeLabel = preg_replace('/[^a-zA-Z0-9_-]/', '_', $label) ?: 'backup';
         $csvPath = $backupDir . DIRECTORY_SEPARATOR . "users_{$safeLabel}_{$stamp}.csv";
 
-        $rows = $pdo->query('SELECT * FROM users ORDER BY id ASC')->fetchAll(PDO::FETCH_ASSOC) ?: [];
-        $columns = $rows !== [] ? array_keys($rows[0]) : ['id', 'name', 'email', 'password_hash', 'role', 'security_score', 'created_at'];
+        $rows = $pdo->query('SELECT id, name, email, role, security_score, created_at FROM users ORDER BY id ASC')->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $columns = ['id', 'name', 'email', 'role', 'security_score', 'created_at'];
 
         $fh = fopen($csvPath, 'wb');
         if ($fh === false) {

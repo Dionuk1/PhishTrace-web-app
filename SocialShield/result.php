@@ -10,6 +10,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('scan.php');
     }
 
+    $userId = (string) ($_SESSION['user_id'] ?? 'guest');
+    if (!checkRateLimit('scan_' . $userId, 10, 60)) {
+        setFlash('Scan rate limit exceeded. Please wait a minute before scanning again.', 'warning');
+        redirect('scan.php');
+    }
+
     $url = sanitizeUrlInput($_POST['url'] ?? '');
     if ($url === '') {
         setFlash('Please submit a valid URL.', 'warning');
@@ -25,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $user = currentUser();
-    saveScan(
+    $scanId = saveScan(
         (int) $user['id'],
         $analysis['url'],
         $analysis['domain'],
@@ -35,17 +41,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pdo
     );
 
-    $_SESSION['latest_scan_analysis'] = $analysis;
+    // Store only minimal scan reference in session - not full analysis with HTML
+    $_SESSION['latest_scan_id'] = $scanId;
+    $_SESSION['latest_scan_summary'] = [
+        'url' => $analysis['url'],
+        'domain' => $analysis['domain'],
+        'status' => $analysis['status'],
+        'risk_score' => $analysis['risk_score'],
+        'reasons' => $analysis['reasons'] ?? [],
+        'valid' => $analysis['valid'] ?? true,
+    ];
     $_SESSION['show_achievement_popup'] = true;
     unset($_SESSION['latest_ai_report']);
 } else {
-    $analysis = $_SESSION['latest_scan_analysis'] ?? null;
-    if (!is_array($analysis) || empty($analysis['url'])) {
+    // Retrieve scan from database instead of session
+    $scanId = (int) ($_SESSION['latest_scan_id'] ?? 0);
+    $scanSummary = $_SESSION['latest_scan_summary'] ?? null;
+    
+    if (!is_array($scanSummary) || empty($scanSummary['url'])) {
         redirect('scan.php');
+    }
+    
+    // Reconstruct minimal analysis array from summary
+    $analysis = $scanSummary;
+    
+    // Load full analysis from database only if needed for display
+    if ($scanId > 0) {
+        $pdo = getPDO();
+        $stmt = $pdo->prepare('SELECT url, domain, status, risk_score, reasons FROM scans WHERE id = :id LIMIT 1');
+        $stmt->execute(['id' => $scanId]);
+        $dbScan = $stmt->fetch();
+        
+        if ($dbScan) {
+            $analysis = [
+                'url' => $dbScan['url'],
+                'domain' => $dbScan['domain'],
+                'status' => $dbScan['status'],
+                'risk_score' => (int) $dbScan['risk_score'],
+                'reasons' => json_decode($dbScan['reasons'], true) ?: [],
+                'valid' => true,
+            ];
+        }
     }
 }
 
-if (empty($analysis['threat_alerts']) && !empty($analysis['html_analysis'])) {
+// Rebuild threat alerts if needed (without relying on html_analysis from session)
+if (empty($analysis['threat_alerts'])) {
     $analysis['threat_alerts'] = buildThreatAlertItems($analysis);
 }
 

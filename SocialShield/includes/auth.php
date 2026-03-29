@@ -49,6 +49,9 @@ function requireAdmin(): void
         setFlash('Admin access is required.', 'danger');
         redirect('index.php');
     }
+    
+    // A-5: Check admin session timeout
+    checkAdminSessionTimeout();
 }
 
 /**
@@ -84,4 +87,29 @@ function logoutUser(): void
         );
     }
     session_destroy();
+}
+
+/**
+ * Check admin session timeout (15 minutes of inactivity).
+ */
+function checkAdminSessionTimeout(): void
+{
+    if (!isAdmin()) {
+        return;
+    }
+    
+    $timeout = 900; // 15 minutes in seconds
+    $key = 'admin_last_activity';
+    $now = time();
+    
+    if (isset($_SESSION[$key])) {
+        $elapsed = $now - (int) $_SESSION[$key];
+        if ($elapsed > $timeout) {
+            logoutUser();
+            setFlash('Admin session expired due to inactivity. Please login again.', 'warning');
+            redirect('login.php');
+        }
+    }
+    
+    $_SESSION[$key] = $now;
 }
