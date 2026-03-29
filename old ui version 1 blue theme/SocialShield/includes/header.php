@@ -71,25 +71,25 @@ if (!headers_sent()) {
                 <li class="nav-item"><a class="nav-link" href="<?= e(appPath('scan.php')); ?>"><?= e($txt('Scan URL', 'Skano URL')); ?></a></li>
                 <li class="nav-item"><a class="nav-link" href="<?= e(appPath('history.php')); ?>"><?= e($txt('History', 'Historiku')); ?></a></li>
                 <li class="nav-item"><a class="nav-link" href="<?= e(appPath('tips.php')); ?>"><?= e($txt('Security Tips', 'Keshilla')); ?></a></li>
+                <li class="nav-item dropdown ss-lang-nav-item">
+                    <button class="nav-link btn ss-lang-nav-toggle dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <?= e(tr('Choose your language', 'Zgjidh gjuhen')); ?>
+                    </button>
+                    <ul class="dropdown-menu ss-lang-menu">
+                        <li><a class="dropdown-item <?= $selectedLang === 'en' ? 'active' : ''; ?>" href="<?= e(appPath('settings.php?lang=en')); ?>">English</a></li>
+                        <li><a class="dropdown-item <?= $selectedLang === 'sq' ? 'active' : ''; ?>" href="<?= e(appPath('settings.php?lang=sq')); ?>">Albanian</a></li>
+                    </ul>
+                </li>
                 <?php if ($user && (($user['role'] ?? '') === 'admin')): ?>
-                    <li class="nav-item"><a class="nav-link" href="<?= e(appPath('admin/dashboard.php')); ?>">Admin Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link ss-admin-nav-link" href="<?= e(appPath('admin/dashboard.php')); ?>">Admin Dashboard</a></li>
                 <?php endif; ?>
             </ul>
 
-            <div class="ss-navbar-tools ms-lg-auto">
-                <div class="ss-lang-switch" aria-label="Language switcher">
-                    <a href="<?= e(appPath('settings.php?lang=en')); ?>" class="btn ss-lang-btn <?= $selectedLang === 'en' ? 'ss-lang-btn--active' : ''; ?>">
-                        <img class="ss-lang-flag" src="https://flagcdn.com/w40/us.png" alt="US flag" loading="lazy">
-                        Anglisht
-                    </a>
-                    <a href="<?= e(appPath('settings.php?lang=sq')); ?>" class="btn ss-lang-btn <?= $selectedLang === 'sq' ? 'ss-lang-btn--active' : ''; ?>">
-                        <img class="ss-lang-flag" src="https://flagcdn.com/w40/xk.png" alt="Kosovo flag" loading="lazy">
-                        Shqip
-                    </a>
-                </div>
+            <div class="ss-navbar-tools <?= $user ? 'ss-navbar-tools--auth' : 'ss-navbar-tools--guest'; ?>">
 
                 <?php if ($user): ?>
-                    <div class="dropdown">
+                    <div class="ss-navbar-tools__primary">
+                        <div class="dropdown">
                         <button class="btn ss-notification-btn ss-notification-btn--icon dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Achievement notifications">
                             <span class="ss-notification-btn__icon" aria-hidden="true">
                                 <svg viewBox="0 0 24 24" focusable="false">
@@ -138,23 +138,26 @@ if (!headers_sent()) {
                                 <?php endif; ?>
                             </div>
                         </div>
-                    </div>
+                        </div>
 
-                    <a class="btn ss-cyber-pill" href="<?= e(appPath('cyber_level.php')); ?>" title="Your Cyber Level">
-                        <span class="ss-cyber-pill__label"><?= e(tr('Your Cyber Level', 'Niveli Yt Kibernetik')); ?></span>
+                        <a class="btn ss-cyber-pill" href="<?= e(appPath('cyber_level.php')); ?>" title="Your Threat Radar">
+                        <span class="ss-cyber-pill__label"><?= e(tr('Your Threat Radar', 'Radari Yt i Kercenimeve')); ?></span>
                         <strong><?= (int) $userCyberScore; ?></strong>
                     </a>
+                    </div>
 
-                    <div class="dropdown">
+                    <div class="ss-navbar-tools__secondary">
+                        <div class="dropdown">
                         <button class="btn ss-profile-toggle dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <?= e((string) $user['name']); ?>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end ss-profile-menu">
-                            <li><a class="dropdown-item" href="<?= e(appPath('profile.php')); ?>">Profili</a></li>
-                            <li><a class="dropdown-item" href="<?= e(appPath('settings.php')); ?>">Cilesimet</a></li>
+                            <li><a class="dropdown-item" href="<?= e(appPath('profile.php')); ?>"><?= e($txt('Profile', 'Profili')); ?></a></li>
+                            <li><a class="dropdown-item" href="<?= e(appPath('settings.php')); ?>"><?= e($txt('Settings', 'Cilesimet')); ?></a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="<?= e(appPath('logout.php')); ?>">Dil</a></li>
+                            <li><a class="dropdown-item" href="<?= e(appPath('logout.php')); ?>"><?= e($txt('Logout', 'Dil')); ?></a></li>
                         </ul>
+                        </div>
                     </div>
                 <?php else: ?>
                     <a class="nav-link" href="<?= e(appPath('login.php')); ?>">Login</a>
@@ -172,3 +175,4 @@ if (!headers_sent()) {
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     <?php endif; ?>
+

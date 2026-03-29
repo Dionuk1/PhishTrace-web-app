@@ -1,0 +1,43 @@
+http://localhost/socialshield/
+http://localhost/socialshield/index.php
+http://localhost/phpmyadmin
+admin@socialshield.local / Admin123!
+student@socialshield.local / Student123!
+
+
+Test scanner with:
+https://github.com (should be low risk)
+http://faceb00k-security-alert.com/login/verify (should be dangerous)
+Use these demo URLs (for testing only):
+
+Safe baseline
+https://github.com
+
+@ symbol rule
+https://github.com@evil-login-check.top/reset
+
+Suspicious TLD (.top)
+s
+
+Long URL (>75 chars)
+https://example.com/account/verify/security/update/reset/password/bonus/claim/notification?id=123456789
+
+Many query params (>4)
+https://example.com/login?u=1&t=abc&verify=yes&reset=true&account=full&bonus=1
+
+Suspicious characters (_ % = & heavy)
+https://example.com/login_reset%2Fsecure%3Dtrue&account=full&wallet=main&bonus=1
+
+IP instead of domain
+http://192.168.1.1/login
+
+Multiple subdomains (>3)
+https://login.verify.account.security.example.com/reset
+
+Brand impersonation (paypal lookalike)
+https://paypa1-security-check.click/login
+
+Brand impersonation (facebook lookalike)
+http://faceb00k-verify-account.top/update
+
+

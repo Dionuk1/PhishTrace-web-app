@@ -104,6 +104,26 @@ function verifyCsrfToken(?string $token): bool
 }
 
 /**
+ * Check action rate limiting to prevent brute force and abuse.
+ */
+function checkRateLimit(string $key, int $maxAttempts = 5, int $windowSec = 300): bool
+{
+    $now = time();
+    $sessionKey = 'rl_' . $key;
+    
+    $data = $_SESSION[$sessionKey] ?? ['count' => 0, 'reset_at' => $now + $windowSec];
+    
+    if ($now > $data['reset_at']) {
+        $data = ['count' => 0, 'reset_at' => $now + $windowSec];
+    }
+    
+    $data['count']++;
+    $_SESSION[$sessionKey] = $data;
+    
+    return $data['count'] <= $maxAttempts;
+}
+
+/**
  * Clean URL input from the user.
  */
 function sanitizeUrlInput(string $url): string
@@ -1038,7 +1058,7 @@ function userExists(PDO $pdo, int $userId): bool
 /**
  * Save scan result to database for history.
  */
-function saveScan(int $userId, string $url, string $domain, int $riskScore, string $status, array $reasons, PDO $pdo): void
+function saveScan(int $userId, string $url, string $domain, int $riskScore, string $status, array $reasons, PDO $pdo): int
 {
     $payload = [
         'user_id' => $userId,
@@ -1063,6 +1083,7 @@ function saveScan(int $userId, string $url, string $domain, int $riskScore, stri
     }
 
     $stmt->execute($payload);
+    $scanId = (int) $pdo->lastInsertId();
 
     if (tableHasColumn($pdo, 'users', 'security_score')) {
         $scorePoints = securityPointsByStatus($status);
@@ -1079,6 +1100,8 @@ function saveScan(int $userId, string $url, string $domain, int $riskScore, stri
     }
 
     awardUserAchievements($userId, $pdo);
+    
+    return $scanId;
 }
 
 /**
@@ -1124,22 +1147,244 @@ if (!function_exists('t')) {
     {
         static $dict = [
             'en' => [
-                'invalid_csrf' => 'Invalid CSRF token.',
-                'language_saved' => 'Language saved.',
+                'invalid_csrf' => 'Invalid security token. Please try again.',
+                'language_saved' => 'Language settings updated successfully.',
                 'settings' => 'Settings',
+                'save_settings' => 'Save Settings',
                 'language_settings' => 'Language Settings',
                 'choose_language' => 'Choose your preferred language.',
+                'lang_toggle' => 'Language',
                 'english' => 'English',
                 'albanian' => 'Albanian',
+                'home' => 'Home',
+                'scan_url' => 'Scan URL',
+                'history' => 'Scan History',
+                'security_tips' => 'Security Tips',
+                'profile' => 'Profile',
+                'logout' => 'Logout',
+                'login' => 'Login',
+                'register' => 'Register',
+                'admin_dashboard' => 'Admin Dashboard',
+                'threat_radar' => 'Your Threat Radar',
+                'hero_title' => 'Stay safer on social networks with PhishTrace',
+                'hero_subtitle' => 'PhishTrace is a security tool that helps you detect phishing links, protect your privacy, and learn safe browsing habits.',
+                'scan_cta' => 'Scan a URL',
+                'tips_cta' => 'Read Security Tips',
+                'quick_checks' => 'Quick Security Checks',
+                'tip_2fa_title' => 'Enable 2FA',
+                'tip_2fa_desc' => 'Use two-factor authentication on all your social accounts.',
+                'tip_link_title' => 'Check links',
+                'tip_link_desc' => 'Always verify the domain spelling before you login.',
+                'tip_pass_title' => 'Strong Passwords',
+                'tip_pass_desc' => 'Use unique, strong passwords for every different account.',
+                'step_1_title' => '1. Submit Link',
+                'step_1_desc' => 'Paste any URL to run a risk analysis using scam indicators.',
+                'step_2_title' => '2. Understand Risk',
+                'step_2_desc' => 'Get a risk score and clear reasons why a link might be dangerous.',
+                'step_3_title' => '3. Safe Habits',
+                'step_3_desc' => 'Follow our recommendations to navigate social media safely.',
+                'scan_title' => 'Scan a suspicious link',
+                'scan_lead' => 'PhishTrace checks URLs, redirect paths, and threat patterns before you click.',
+                'url_label' => 'URL to scan',
+                'url_placeholder' => 'https://example.com/login',
+                'start_scan' => 'Start Scan',
+                'view_history' => 'View History',
+                'analysis_dashboard' => 'Cybersecurity analysis dashboard',
+                'analysis_lead' => 'Professional phishing analysis with threat indicators and on-demand AI explanation.',
+                'scan_complete' => 'SCAN COMPLETE',
+                'result_title' => 'URL Scan Result',
+                'result_desc' => 'Live phishing analysis for the submitted link.',
+                'submitted_url' => 'Submitted URL',
+                'detected_domain' => 'Detected Domain',
+                'risk_status' => 'Risk Status',
+                'risk_score' => 'Risk Score',
+                'threat_indicators' => 'Threat Indicators',
+                'threat_desc' => 'Detected signals commonly associated with phishing or malicious pages.',
+                'ai_assistant' => 'AI Security Assistant',
+                'ai_desc' => 'Generate a natural-language explanation and recommendations from the detected indicators.',
+                'generate_ai' => 'Generate AI Summary',
+                'open_popup' => 'Open AI Summary Popup',
+                'ai_source' => 'Source: OpenAI or fallback security model',
+                'ai_summary' => 'AI Summary',
+                'ai_ready' => 'AI summary ready on request',
+                'ai_trigger_desc' => 'Submit the button above to generate an explanation from the current threat indicators.',
+                'scan_another' => 'Scan Another URL',
+                'view_scan_history' => 'View Scan History',
+                'invalid_url' => 'Please submit a valid URL.',
+                'achievement_unlocked' => 'Achievement Unlocked',
+                'no_achievements' => 'No achievements yet',
+                'achievements_will_show' => 'Unlocked achievements will show here.',
+                'total_points' => 'Total points',
+                'total_achievements' => 'Total achievements',
+                'complete_scans_to_unlock' => 'Complete scans to unlock achievements and earn points.',
+                'tips_title' => 'Security and Privacy Tips',
+                'tips_lead' => 'These tips help reduce phishing, account takeover, and privacy leaks.',
+                'no_tips' => 'No tips found. Please import the seed data.',
+                'email_address' => 'Email address',
+                'password' => 'Password',
+                'forgot_password' => 'Forgot your password? Reset it here.',
+                'no_account' => 'Don\'t have an account?',
+                'register_here' => 'Register here',
+                'create_account' => 'Create account',
+                'full_name' => 'Full name',
+                'confirm_password' => 'Confirm password',
+                'already_have_account' => 'Already have an account?',
+                'login_here' => 'Login here',
+                'password_min_length' => 'Your password must be at least 6 characters long.',
+                'password_confirm_help' => 'Repeat the same password to confirm it.',
+                'name_label' => 'Name',
+                'role_label' => 'Role',
+                'joined_label' => 'Joined on',
+                'date' => 'Date',
+                'url' => 'URL',
+                'score' => 'Score',
+                'status' => 'Status',
+                'reasons' => 'Reasons',
+                'new_scan' => 'New Scan',
+                'no_scans' => 'No scans found yet. Try your first URL scan!',
+                'no_reasons' => 'No specific indicators stored',
+                'phishing_detected' => 'Phishing detected',
+                'too_many_login' => 'Too many login attempts. Please try again later.',
+                'too_many_reg' => 'Too many registration attempts. Please try again later.',
+                'too_many_scan' => 'Scan rate limit exceeded. Please wait a minute before scanning again.',
+                'invalid_details' => 'Please provide valid login details.',
+                'email_exists' => 'This email already exists. Please login instead.',
+                'welcome_msg' => 'Registration successful! Welcome to PhishTrace.',
+                'login_success' => 'Login successful. Welcome back!',
+                'show_password' => 'Show password',
+                'my_security_level' => 'My Security Level',
+                'cyber_level_title' => 'Cyber Awareness Dashboard',
+                'user' => 'User',
+                'security_score' => 'Security Score',
+                'user_level' => 'User Level',
+                'score_progress' => 'Score Progress',
+                'current' => 'Current',
+                'scan_stats' => 'Scan Statistics',
+                'total_scans' => 'Total Scans',
+                'safe_detected' => 'Safe Links',
+                'suspicious_detected' => 'Suspicious Links',
+                'dangerous_detected' => 'Dangerous Links',
+                'scan_mix' => 'Risk Distribution',
             ],
             'sq' => [
-                'invalid_csrf' => 'Token CSRF i pavlefshem.',
-                'language_saved' => 'Gjuha u ruajt.',
-                'settings' => 'Cilesimet',
-                'language_settings' => 'Cilesimet e Gjuhes',
-                'choose_language' => 'Zgjidh gjuhen e preferuar.',
+                'invalid_csrf' => 'Tokeni i sigurisë është i pavlefshëm. Ju lutem provoni përsëri.',
+                'language_saved' => 'Cilësimet e gjuhës u përditësuan me sukses.',
+                'settings' => 'Cilësimet',
+                'save_settings' => 'Ruaj Cilësimet',
+                'language_settings' => 'Cilësimet e Gjuhës',
+                'choose_language' => 'Zgjidhni gjuhën tuaj të preferuar.',
+                'lang_toggle' => 'Gjuha',
                 'english' => 'Anglisht',
                 'albanian' => 'Shqip',
+                'home' => 'Ballina',
+                'scan_url' => 'Skano URL',
+                'history' => 'Historiku i Skanimeve',
+                'security_tips' => 'Këshilla Sigurie',
+                'profile' => 'Profili',
+                'logout' => 'Dil',
+                'login' => 'Kyçu',
+                'register' => 'Regjistrohu',
+                'admin_dashboard' => 'Paneli i Administratorit',
+                'threat_radar' => 'Radari i Kërcënimeve',
+                'hero_title' => 'Mbroni veten nga Phishing në rrjetet sociale',
+                'hero_subtitle' => 'PhishTrace është një mjet i thjeshtë që ju ndihmon të zbuloni linket e dyshimta dhe të mësoni si të lundroni më sigurt.',
+                'scan_cta' => 'Skano një URL',
+                'tips_cta' => 'Këshilla Sigurie',
+                'quick_checks' => 'Kontrolle të Shpejta',
+                'tip_2fa_title' => 'Aktivizo 2FA',
+                'tip_2fa_desc' => 'Përdorni vërtetimin me dy faktorë në çdo llogari tuajën.',
+                'tip_link_title' => 'Kontrollo linket',
+                'tip_link_desc' => 'Gjithmonë verifikoni emrin e faqes para se të shkruani fjalëkalimin.',
+                'tip_pass_title' => 'Fjalëkalime të Forta',
+                'tip_pass_desc' => 'Mos i përdorni të njëjtët fjalëkalime për llogari të ndryshme.',
+                'step_1_title' => '1. Dërgo Linkun',
+                'step_1_desc' => 'Ngjitni URL-në për të parë nëse ka shenja mashtrimi.',
+                'step_2_title' => '2. Kupto Rrezikun',
+                'step_2_desc' => 'Merrni një rezultat rreziku dhe arsyet pse një link është i dyshimtë.',
+                'step_3_title' => '3. Mëso Shprehi',
+                'step_3_desc' => 'Ndiqni këshillat tona për të qëndruar të sigurt në rrjetet sociale.',
+                'scan_title' => 'Skano një link të dyshimtë',
+                'scan_lead' => 'PhishTrace kontrollon linkun për rreziqe dhe Phishing para se ju ta klikoni.',
+                'url_label' => 'URL për skanim',
+                'url_placeholder' => 'https://shembull.com/login',
+                'start_scan' => 'Nis Skanimin',
+                'view_history' => 'Historiku',
+                'analysis_dashboard' => 'Paneli i analizës së sigurisë kibernetike',
+                'analysis_lead' => 'Analizë profesionale e Phishing me tregues kërcënimi dhe shpjegim AI.',
+                'scan_complete' => 'SKANIMI PËRFUNDOI',
+                'result_title' => 'Rezultati i Skanimit',
+                'result_desc' => 'Analizë e drejtpërdrejtë për linkun tuaj.',
+                'submitted_url' => 'URL-ja e dërguar',
+                'detected_domain' => 'Domaini i zbuluar',
+                'risk_status' => 'Statusi i rrezikut',
+                'risk_score' => 'Rezultati i rrezikut',
+                'threat_indicators' => 'Treguesit e Kërcënimit',
+                'threat_desc' => 'Shenja të zbuluara që lidhen me Phishing ose faqe të dëmshme.',
+                'ai_assistant' => 'Asistenti i Sigurisë AI',
+                'ai_desc' => 'Gjenero një shpjegim dhe rekomandime nga treguesit e zbuluar.',
+                'generate_ai' => 'Gjenero Shpjegimin AI',
+                'open_popup' => 'Hap AI në dritare të re',
+                'ai_source' => 'Burimi: OpenAI ose modeli mbështetës i sigurisë',
+                'ai_summary' => 'Përmbledhja AI',
+                'ai_ready' => 'Shpjegimi AI është gati',
+                'ai_trigger_desc' => 'Shtyp butonin më lart për të parë shpjegimin e rreziqeve.',
+                'scan_another' => 'Skano një URL tjetër',
+                'view_scan_history' => 'Shih Historikun e Skanimeve',
+                'invalid_url' => 'Ju lutem dërgoni një URL të vlefshme.',
+                'achievement_unlocked' => 'Arritje e re!',
+                'no_achievements' => 'Nuk keni asnjë arritje ende',
+                'achievements_will_show' => 'Arritjet tuaja do të shfaqen këtu.',
+                'total_points' => 'Pikët totale',
+                'total_achievements' => 'Arritjet totale',
+                'complete_scans_to_unlock' => 'Skanoni linke për të fituar pikë dhe medalje.',
+                'tips_title' => 'Këshilla për Sigurinë dhe Privatësinë',
+                'tips_lead' => 'Këto këshilla ju ndihmojnë të shmangni Phishing dhe vjedhjen e llogarisë.',
+                'no_tips' => 'Nuk u gjet asnjë këshillë momentalisht.',
+                'email_address' => 'Adresa e email-it',
+                'password' => 'Fjalëkalimi',
+                'forgot_password' => 'Keni harruar fjalëkalimin? Ndryshojeni këtu.',
+                'no_account' => 'Nuk keni llogari?',
+                'register_here' => 'Regjistrohuni këtu',
+                'create_account' => 'Krijo llogari të re',
+                'full_name' => 'Emri dhe mbiemri',
+                'confirm_password' => 'Konfirmo fjalëkalimin',
+                'already_have_account' => 'Keni llogari?',
+                'login_here' => 'Kyçuni këtu',
+                'password_min_length' => 'Fjalëkalimi duhet të jetë të paktën 6 karaktere.',
+                'password_confirm_help' => 'Shkruani të njëjtin fjalëkalim për ta konfirmuar.',
+                'name_label' => 'Emri',
+                'role_label' => 'Roli',
+                'joined_label' => 'Anëtarësuar më',
+                'date' => 'Data',
+                'url' => 'URL',
+                'score' => 'Pikët',
+                'status' => 'Statusi',
+                'reasons' => 'Arsyet',
+                'new_scan' => 'Skanim i ri',
+                'no_scans' => 'Nuk u gjet asnjë skanim. Bëni skanimin tuaj të parë!',
+                'no_reasons' => 'Nuk ka rreziqe specifike të ruajtura',
+                'phishing_detected' => 'Phishing u zbulua',
+                'too_many_login' => 'Shumë tentativa kyçjeje. Provo përsëri pas pak minutash.',
+                'too_many_reg' => 'Shumë tentativa regjistrimi. Provo përsëri pak më vonë.',
+                'too_many_scan' => 'Keni kaluar limitin e skanimeve. Ju lutem prisni një minutë.',
+                'invalid_details' => 'Të dhënat e kyçjes nuk janë të sakta.',
+                'email_exists' => 'Ky email ekziston. Provoni të kyçeni.',
+                'welcome_msg' => 'Mirë se vini në PhishTrace! Regjistrimi ishte i suksesshëm.',
+                'login_success' => 'Mirë se erdhët përsëri! Kyçja u krye me sukses.',
+                'show_password' => 'Shfaq fjalëkalimin',
+                'my_security_level' => 'Niveli im i Sigurisë',
+                'cyber_level_title' => 'Paneli i Vetëdijes Kibernetike',
+                'user' => 'Përdoruesi',
+                'security_score' => 'Pikët e Sigurisë',
+                'user_level' => 'Niveli i Përdoruesit',
+                'score_progress' => 'Progresi i Pikëve',
+                'current' => 'Aktualisht',
+                'scan_stats' => 'Statistikat e Skanimeve',
+                'total_scans' => 'Skanime Totale',
+                'safe_detected' => 'Linke të Sigurta',
+                'suspicious_detected' => 'Linke të Dyshimta',
+                'dangerous_detected' => 'Linke të Rrezikshme',
+                'scan_mix' => 'Shpërndarja e Rrezikut',
             ],
         ];
 
@@ -1159,6 +1404,7 @@ if (!function_exists('languageFlagUrl')) {
         return strtolower($lang) === 'sq' ? 'https://flagcdn.com/w40/xk.png' : 'https://flagcdn.com/w40/us.png';
     }
 }
+
 if (!function_exists('displayStatusLabel')) {
     function displayStatusLabel(string $status): string
     {
@@ -1174,11 +1420,27 @@ if (!function_exists('displayStatusLabel')) {
 if (!function_exists('ssBackupDirectory')) {
     function ssBackupDirectory(): string
     {
-        $dir = realpath(__DIR__ . '/..') . DIRECTORY_SEPARATOR . 'backups';
-        if (!is_dir($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) {
+        $webRoot = realpath(__DIR__ . '/..');
+        $storageRoot = $webRoot . DIRECTORY_SEPARATOR . 'storage';
+        $backupDir = $storageRoot . DIRECTORY_SEPARATOR . 'backups';
+        
+        if (!is_dir($storageRoot)) {
+            if (!mkdir($storageRoot, 0700, true) && !is_dir($storageRoot)) {
+                throw new RuntimeException('Could not create storage directory.');
+            }
+            
+            file_put_contents(
+                $storageRoot . DIRECTORY_SEPARATOR . '.htaccess',
+                "# Security: Deny all web access to storage directory\n" .
+                "Require all denied\n"
+            );
+        }
+        
+        if (!is_dir($backupDir) && !mkdir($backupDir, 0700, true) && !is_dir($backupDir)) {
             throw new RuntimeException('Could not create backups directory.');
         }
-        return $dir;
+        
+        return $backupDir;
     }
 }
 
@@ -1194,8 +1456,8 @@ if (!function_exists('createUsersBackup')) {
         $safeLabel = preg_replace('/[^a-zA-Z0-9_-]/', '_', $label) ?: 'backup';
         $csvPath = $backupDir . DIRECTORY_SEPARATOR . "users_{$safeLabel}_{$stamp}.csv";
 
-        $rows = $pdo->query('SELECT * FROM users ORDER BY id ASC')->fetchAll(PDO::FETCH_ASSOC) ?: [];
-        $columns = $rows !== [] ? array_keys($rows[0]) : ['id', 'name', 'email', 'password_hash', 'role', 'security_score', 'created_at'];
+        $rows = $pdo->query('SELECT id, name, email, role, security_score, created_at FROM users ORDER BY id ASC')->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $columns = ['id', 'name', 'email', 'role', 'security_score', 'created_at'];
 
         $fh = fopen($csvPath, 'wb');
         if ($fh === false) {
@@ -1228,8 +1490,8 @@ if (!function_exists('createScansBackup')) {
         $safeLabel = preg_replace('/[^a-zA-Z0-9_-]/', '_', $label) ?: 'backup';
         $csvPath = $backupDir . DIRECTORY_SEPARATOR . "scans_{$safeLabel}_{$stamp}.csv";
 
-        $rows = $pdo->query('SELECT * FROM scans ORDER BY id ASC')->fetchAll(PDO::FETCH_ASSOC) ?: [];
-        $columns = $rows !== [] ? array_keys($rows[0]) : ['id', 'user_id', 'url', 'domain', 'risk_score', 'status', 'reasons', 'scanned_at'];
+        $rows = $pdo->query('SELECT id, user_id, url, domain, risk_score, status, reasons, scanned_at FROM scans ORDER BY id ASC')->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $columns = ['id', 'user_id', 'url', 'domain', 'risk_score', 'status', 'reasons', 'scanned_at'];
 
         $fh = fopen($csvPath, 'wb');
         if ($fh === false) {
@@ -1249,6 +1511,7 @@ if (!function_exists('createScansBackup')) {
         return ['csv' => $csvPath, 'rows' => count($rows)];
     }
 }
+
 if (!function_exists('securityLevelFromScore')) {
     function securityLevelFromScore(int $score): string
     {
@@ -1256,10 +1519,10 @@ if (!function_exists('securityLevelFromScore')) {
             return tr('Beginner', 'Fillestar');
         }
         if ($score <= 150) {
-            return tr('Aware User', 'Perdorues i Vetedijshem');
+            return tr('Aware User', 'Përdorues i Vetëdijshëm');
         }
         if ($score <= 300) {
-            return tr('Security Savvy', 'I Zoti ne Siguri');
+            return tr('Security Savvy', 'I Zoti në Siguri');
         }
         return tr('Phishing Hunter', 'Gjuetar i Phishing');
     }

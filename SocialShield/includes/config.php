@@ -13,7 +13,50 @@ if (session_status() === PHP_SESSION_NONE) {
         throw new RuntimeException('Unable to create session storage directory.');
     }
     session_save_path($sessionPath);
+    
+    // A-1: Harden session cookie flags
+    ini_set('session.cookie_httponly', '1');
+    ini_set('session.cookie_samesite', 'Lax');
+    
+    // Only enable secure flag if HTTPS is available
+    if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
+        ini_set('session.cookie_secure', '1');
+    }
+    
     session_start();
+}
+
+// A-4: Add security headers to prevent common attacks
+if (!headers_sent()) {
+    // Prevent clickjacking
+    header('X-Frame-Options: SAMEORIGIN');
+    
+    // Prevent MIME type sniffing
+    header('X-Content-Type-Options: nosniff');
+    
+    // Enable XSS filter (legacy browsers)
+    header('X-XSS-Protection: 1; mode=block');
+    
+    // Referrer policy (don't leak full URL)
+    header('Referrer-Policy: strict-origin-when-cross-origin');
+    
+    // Content Security Policy (allows current inline styles/scripts used in app)
+    header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' data: https: https://flagcdn.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self'; frame-ancestors 'self'");
+}
+
+// A-6: Configure application error logging
+$appLogDir = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'logs';
+if (!is_dir($appLogDir) && !mkdir($appLogDir, 0700, true) && !is_dir($appLogDir)) {
+    throw new RuntimeException('Unable to create log directory.');
+}
+
+$appLogFile = $appLogDir . DIRECTORY_SEPARATOR . 'app_error.log';
+ini_set('error_log', $appLogFile);
+
+// Ensure log file has secure permissions
+if (!file_exists($appLogFile)) {
+    touch($appLogFile);
+    chmod($appLogFile, 0600);
 }
 
 // Local database defaults for XAMPP/Laragon.

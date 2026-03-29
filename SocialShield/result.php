@@ -6,13 +6,19 @@ requireLogin();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verifyCsrfToken($_POST['csrf_token'] ?? null)) {
-        setFlash('Invalid CSRF token. Please try again.', 'danger');
+        setFlash(t('invalid_csrf'), 'danger');
+        redirect('scan.php');
+    }
+
+    $userId = (string) ($_SESSION['user_id'] ?? 'guest');
+    if (!checkRateLimit('scan_' . $userId, 10, 60)) {
+        setFlash(t('too_many_scan'), 'warning');
         redirect('scan.php');
     }
 
     $url = sanitizeUrlInput($_POST['url'] ?? '');
     if ($url === '') {
-        setFlash('Please submit a valid URL.', 'warning');
+        setFlash(t('invalid_url'), 'warning');
         redirect('scan.php');
     }
 
@@ -20,12 +26,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $analysis = analyzeUrl($url, $pdo);
 
     if (!$analysis['valid']) {
-        setFlash($analysis['reasons'][0] ?? 'Invalid URL.', 'danger');
+        setFlash($analysis['reasons'][0] ?? t('invalid_url'), 'danger');
         redirect('scan.php');
     }
 
     $user = currentUser();
-    saveScan(
+    $scanId = saveScan(
         (int) $user['id'],
         $analysis['url'],
         $analysis['domain'],
@@ -35,17 +41,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pdo
     );
 
-    $_SESSION['latest_scan_analysis'] = $analysis;
+    // Store only minimal scan reference in session - not full analysis with HTML
+    $_SESSION['latest_scan_id'] = $scanId;
+    $_SESSION['latest_scan_summary'] = [
+        'url' => $analysis['url'],
+        'domain' => $analysis['domain'],
+        'status' => $analysis['status'],
+        'risk_score' => $analysis['risk_score'],
+        'reasons' => $analysis['reasons'] ?? [],
+        'valid' => $analysis['valid'] ?? true,
+    ];
     $_SESSION['show_achievement_popup'] = true;
     unset($_SESSION['latest_ai_report']);
 } else {
-    $analysis = $_SESSION['latest_scan_analysis'] ?? null;
-    if (!is_array($analysis) || empty($analysis['url'])) {
+    // Retrieve scan from database instead of session
+    $scanId = (int) ($_SESSION['latest_scan_id'] ?? 0);
+    $scanSummary = $_SESSION['latest_scan_summary'] ?? null;
+    
+    if (!is_array($scanSummary) || empty($scanSummary['url'])) {
         redirect('scan.php');
+    }
+    
+    // Reconstruct minimal analysis array from summary
+    $analysis = $scanSummary;
+    
+    // Load full analysis from database only if needed for display
+    if ($scanId > 0) {
+        $pdo = getPDO();
+        $stmt = $pdo->prepare('SELECT url, domain, status, risk_score, reasons FROM scans WHERE id = :id LIMIT 1');
+        $stmt->execute(['id' => $scanId]);
+        $dbScan = $stmt->fetch();
+        
+        if ($dbScan) {
+            $analysis = [
+                'url' => $dbScan['url'],
+                'domain' => $dbScan['domain'],
+                'status' => $dbScan['status'],
+                'risk_score' => (int) $dbScan['risk_score'],
+                'reasons' => json_decode($dbScan['reasons'], true) ?: [],
+                'valid' => true,
+            ];
+        }
     }
 }
 
-if (empty($analysis['threat_alerts']) && !empty($analysis['html_analysis'])) {
+// Rebuild threat alerts if needed (without relying on html_analysis from session)
+if (empty($analysis['threat_alerts'])) {
     $analysis['threat_alerts'] = buildThreatAlertItems($analysis);
 }
 
@@ -67,18 +108,18 @@ if ($showAchievementPopup) {
     }
 }
 
-$pageTitle = 'AI Security Assistant';
+$pageTitle = t('ai_assistant');
 require_once __DIR__ . '/includes/header.php';
 ?>
 
 <section class="ss-panel ss-panel-hero mb-4">
     <div class="d-flex flex-wrap justify-content-between align-items-end gap-3">
         <div>
-            <p class="ss-kicker mb-2">AI Security Assistant</p>
-            <h1 class="ss-title mb-3">Cybersecurity analysis dashboard</h1>
-            <p class="ss-lead mb-0">Professional phishing analysis for <code><?= e($analysis['domain']); ?></code> with threat indicators and on-demand AI explanation.</p>
+            <p class="ss-kicker mb-2"><?= e(t('ai_assistant')); ?></p>
+            <h1 class="ss-title mb-3"><?= e(t('analysis_dashboard')); ?></h1>
+            <p class="ss-lead mb-0"><?= e(t('analysis_lead')); ?></p>
         </div>
-        <div class="ss-chip">SCAN COMPLETE</div>
+        <div class="ss-chip"><?= e(t('scan_complete')); ?></div>
     </div>
 </section>
 
@@ -90,29 +131,29 @@ require_once __DIR__ . '/includes/header.php';
                     <div class="ss-section-header">
                         <span class="ss-section-icon">SCAN</span>
                         <div>
-                            <h2 class="h4 mb-1">URL Scan Result</h2>
-                            <p class="text-secondary mb-0">Live phishing analysis for the submitted link.</p>
+                            <h2 class="h4 mb-1"><?= e(t('result_title')); ?></h2>
+                            <p class="text-secondary mb-0"><?= e(t('result_desc')); ?></p>
                         </div>
                     </div>
 
                     <div class="ss-result-meta">
                         <div class="ss-result-meta-row">
-                            <span>Submitted URL</span>
+                            <span><?= e(t('submitted_url')); ?></span>
                             <code><?= e($analysis['url']); ?></code>
                         </div>
                         <div class="ss-result-meta-row">
-                            <span>Detected domain</span>
+                            <span><?= e(t('detected_domain')); ?></span>
                             <strong><?= e($analysis['domain']); ?></strong>
                         </div>
                         <div class="ss-result-meta-row">
-                            <span>Risk status</span>
+                            <span><?= e(t('risk_status')); ?></span>
                             <span class="ss-status-pill ss-status-pill--<?= e($riskTone); ?>"><?= e($statusLabel); ?></span>
                         </div>
                     </div>
 
                     <div class="ss-risk-meter">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="ss-metric-label mb-0">Risk Score</span>
+                            <span class="ss-metric-label mb-0"><?= e(t('risk_score')); ?></span>
                             <span class="ss-risk-percent ss-risk-percent--<?= e($riskTone); ?>"><?= (int) $analysis['risk_score']; ?>%</span>
                         </div>
                         <div class="ss-progress-track" aria-hidden="true">
@@ -127,8 +168,8 @@ require_once __DIR__ . '/includes/header.php';
                     <div class="ss-section-header">
                         <span class="ss-section-icon ss-section-icon--warning">THREAT</span>
                         <div>
-                            <h2 class="h4 mb-1">Threat Indicators</h2>
-                            <p class="text-secondary mb-0">Detected signals commonly associated with phishing or malicious pages.</p>
+                            <h2 class="h4 mb-1"><?= e(t('threat_indicators')); ?></h2>
+                            <p class="text-secondary mb-0"><?= e(t('threat_desc')); ?></p>
                         </div>
                     </div>
 
@@ -150,24 +191,24 @@ require_once __DIR__ . '/includes/header.php';
             <div class="ss-section-header">
                 <span class="ss-section-icon ss-section-icon--ai">AI</span>
                 <div>
-                    <h2 class="h4 mb-1">AI Security Assistant</h2>
-                    <p class="text-secondary mb-0">Generate a natural-language explanation and recommendations from the detected indicators.</p>
+                    <h2 class="h4 mb-1"><?= e(t('ai_assistant')); ?></h2>
+                    <p class="text-secondary mb-0"><?= e(t('ai_desc')); ?></p>
                 </div>
             </div>
 
             <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
                 <form method="post" action="<?= e(appPath('ai_summary_loading.php')); ?>" class="m-0">
                     <input type="hidden" name="csrf_token" value="<?= e(csrfToken()); ?>">
-                    <button type="submit" class="btn btn-primary ss-ai-trigger">Generate AI Summary</button>
+                    <button type="submit" class="btn btn-primary ss-ai-trigger"><?= e(t('generate_ai')); ?></button>
                 </form>
-                <a href="<?= e(appPath('ai_summary_popup.php')); ?>" class="btn btn-outline-light btn-sm" target="_blank" onclick="window.open(this.href,'aiSummaryPopup','width=980,height=780'); return false;">Open AI Summary Popup</a>
-                <span class="ss-chip">Source: OpenAI or fallback security model</span>
+                <a href="<?= e(appPath('ai_summary_popup.php')); ?>" class="btn btn-outline-light btn-sm" target="_blank" onclick="window.open(this.href,'aiSummaryPopup','width=980,height=780'); return false;"><?= e(t('open_popup')); ?></a>
+                <span class="ss-chip"><?= e(t('ai_source')); ?></span>
             </div>
 
             <?php if ($aiReport): ?>
                 <div class="ss-ai-summary-box mt-3">
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-                        <h3 class="h5 mb-0">AI Summary</h3>
+                        <h3 class="h5 mb-0"><?= e(t('ai_summary')); ?></h3>
                         <span class="ss-status-pill ss-status-pill--ai"><?= e(strtoupper((string) $aiReport['source'])); ?></span>
                     </div>
                     <div class="ss-ai-summary-content"><?= renderAiReportHtml((string) $aiReport['text']); ?></div>
@@ -176,8 +217,8 @@ require_once __DIR__ . '/includes/header.php';
                 <div class="ss-ai-placeholder mt-3">
                     <span class="ss-spinner" aria-hidden="true"></span>
                     <div>
-                        <strong>AI summary ready on request</strong>
-                        <p class="mb-0 text-secondary">Submit the button above to generate a PHP-rendered explanation from the current threat indicators.</p>
+                        <strong><?= e(t('ai_ready')); ?></strong>
+                        <p class="mb-0 text-secondary"><?= e(t('ai_trigger_desc')); ?></p>
                     </div>
                 </div>
             <?php endif; ?>
@@ -186,8 +227,8 @@ require_once __DIR__ . '/includes/header.php';
 </section>
 
 <div class="d-grid gap-2 d-md-flex mt-4">
-    <a href="<?= e(appPath('scan.php')); ?>" class="btn btn-primary">Scan Another URL</a>
-    <a href="<?= e(appPath('history.php')); ?>" class="btn btn-outline-light">View Scan History</a>
+    <a href="<?= e(appPath('scan.php')); ?>" class="btn btn-primary"><?= e(t('scan_another')); ?></a>
+    <a href="<?= e(appPath('history.php')); ?>" class="btn btn-outline-light"><?= e(t('view_scan_history')); ?></a>
 </div>
 
 <?php if ($showAchievementPopup && is_array($latestAchievement)): ?>
@@ -195,7 +236,7 @@ require_once __DIR__ . '/includes/header.php';
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content ss-panel">
             <div class="modal-header border-0">
-                <h5 class="modal-title">Achievement Unlocked</h5>
+                <h5 class="modal-title"><?= e(t('achievement_unlocked')); ?></h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">

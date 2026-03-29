@@ -11,11 +11,11 @@ $pageTitle = 'Security Tips';
 require_once __DIR__ . '/includes/header.php';
 ?>
 
-<h2 class="h4 mb-3">Security and Privacy Tips for Social Networks</h2>
-<p class="text-muted">These tips help reduce phishing, account takeover, and privacy leaks.</p>
+<h2 class="h4 mb-3"><?= e(t('tips_title')); ?></h2>
+<p class="text-muted"><?= e(t('tips_lead')); ?></p>
 
 <?php if (!$tips): ?>
-    <div class="alert alert-info">No tips found. Import the SocialShield seed data first.</div>
+    <div class="alert alert-info"><?= e(t('no_tips')); ?></div>
 <?php else: ?>
     <div class="row g-4">
         <?php foreach ($tips as $tip): ?>

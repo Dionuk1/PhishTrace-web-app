@@ -27,7 +27,7 @@ require_once __DIR__ . '/includes/header.php';
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="h4 mb-0"><?= e(tr('Cyber Awareness Leaderboard', 'Klasifikimi i VetÃ«dijes Kibernetike')); ?></h2>
+    <h2 class="h4 mb-0"><?= e(tr('Cyber Awareness Leaderboard', 'Klasifikimi i Vetëdijes Kibernetike')); ?></h2>
 </div>
 
 <div class="card ss-card">
@@ -37,8 +37,8 @@ require_once __DIR__ . '/includes/header.php';
                 <thead>
                 <tr>
                     <th>#</th>
-                    <th><?= e(tr('User', 'PÃ«rdoruesi')); ?></th>
-                    <th><?= e(tr('Security Score', 'PikÃ«t e SigurisÃ«')); ?></th>
+                    <th><?= e(tr('User', 'Përdoruesi')); ?></th>
+                    <th><?= e(tr('Security Score', 'Pikët e Sigurisë')); ?></th>
                     <th><?= e(tr('Level', 'Niveli')); ?></th>
                 </tr>
                 </thead>
