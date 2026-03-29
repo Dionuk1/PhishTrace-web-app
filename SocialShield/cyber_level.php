@@ -42,16 +42,16 @@ $totalScans = (int) ($stats['total_scans'] ?? 0);
 
 $currentLevelMin = 0;
 $nextLevelMin = 50;
-$nextLevelName = tr('Aware User', 'PÃ«rdorues i VetÃ«dijshÃ«m');
+$nextLevelName = tr('Aware User', 'Përdorues i Vetëdijshëm');
 
 if ($securityScore <= 50) {
     $currentLevelMin = 0;
     $nextLevelMin = 51;
-    $nextLevelName = tr('Aware User', 'PÃ«rdorues i VetÃ«dijshÃ«m');
+    $nextLevelName = tr('Aware User', 'Përdorues i Vetëdijshëm');
 } elseif ($securityScore <= 150) {
     $currentLevelMin = 51;
     $nextLevelMin = 151;
-    $nextLevelName = tr('Security Savvy', 'I Zoti nÃ« Siguri');
+    $nextLevelName = tr('Security Savvy', 'I Zoti në Siguri');
 } elseif ($securityScore <= 300) {
     $currentLevelMin = 151;
     $nextLevelMin = 301;
@@ -100,9 +100,9 @@ require_once __DIR__ . '/includes/header.php';
                     <div class="progress-bar bg-info" role="progressbar" style="width: <?= $levelProgress; ?>%" aria-valuenow="<?= $levelProgress; ?>" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
                 <?php if ($pointsToNext > 0): ?>
-                    <p class="small text-muted mb-0"><?= $pointsToNext; ?> <?= e(tr('point(s) to reach', 'pikÃ« pÃ«r tÃ« arritur')); ?> <?= e($nextLevelName); ?>.</p>
+                    <p class="small text-muted mb-0"><?= $pointsToNext; ?> <?= e(tr('point(s) to reach', 'pikë për të arritur')); ?> <?= e($nextLevelName); ?>.</p>
                 <?php else: ?>
-                    <p class="small text-success mb-0"><?= e(tr('You reached the top level.', 'Ke arritur nivelin mÃ« tÃ« lartÃ«.')); ?></p>
+                    <p class="small text-success mb-0"><?= e(tr('You reached the top level.', 'Ke arritur nivelin më të lartë.')); ?></p>
                 <?php endif; ?>
             </div>
         </div>
@@ -124,8 +124,8 @@ require_once __DIR__ . '/includes/header.php';
                 </div>
                 <div class="small">
                     <span class="badge text-bg-success me-1"><?= e(tr('Safe', 'Sigurt')); ?> <?= $safePercent; ?>%</span>
-                    <span class="badge text-bg-warning me-1"><?= e(tr('Suspicious', 'DyshimtÃ«')); ?> <?= $suspiciousPercent; ?>%</span>
-                    <span class="badge text-bg-danger"><?= e(tr('Dangerous', 'RrezikshÃ«m')); ?> <?= $dangerousPercent; ?>%</span>
+                    <span class="badge text-bg-warning me-1"><?= e(tr('Suspicious', 'Dyshimtë')); ?> <?= $suspiciousPercent; ?>%</span>
+                    <span class="badge text-bg-danger"><?= e(tr('Dangerous', 'Rrezikshëm')); ?> <?= $dangerousPercent; ?>%</span>
                 </div>
             </div>
         </div>

@@ -11,40 +11,39 @@ require_once __DIR__ . '/includes/header.php';
         <div class="row g-4 align-items-stretch">
             <div class="col-lg-7">
                 <div class="ss-hero-main h-100">
-                    <h1 class="display-5 fw-bold">Stay safer on social networks with SocialShield</h1>
+                    <h1 class="display-5 fw-bold"><?= e(t('hero_title')); ?></h1>
                     <p class="fs-5 ss-hero-copy">
-                        This beginner-friendly web app demonstrates rule-based phishing link detection,
-                        privacy awareness, and secure coding basics in PHP.
+                        <?= e(t('hero_subtitle')); ?>
                     </p>
                     <div class="d-flex gap-3 flex-wrap ss-hero-actions">
-                        <a href="<?= e(appPath('scan.php')); ?>" class="btn ss-btn-hero-primary btn-lg">Scan a URL</a>
-                        <a href="<?= e(appPath('tips.php')); ?>" class="btn ss-btn-hero-secondary btn-lg">Read Security Tips</a>
+                        <a href="<?= e(appPath('scan.php')); ?>" class="btn ss-btn-hero-primary btn-lg"><?= e(t('scan_cta')); ?></a>
+                        <a href="<?= e(appPath('tips.php')); ?>" class="btn ss-btn-hero-secondary btn-lg"><?= e(t('tips_cta')); ?></a>
                     </div>
                 </div>
             </div>
             <div class="col-lg-5">
-                <aside class="ss-hero-side h-100" aria-label="Quick security tips">
-                    <p class="ss-kicker mb-3">Quick Security Checks</p>
+                <aside class="ss-hero-side h-100" aria-label="<?= e(t('quick_checks')); ?>">
+                    <p class="ss-kicker mb-3"><?= e(t('quick_checks')); ?></p>
                     <div class="ss-hero-tip-list">
                         <div class="ss-hero-tip-card">
                             <span class="ss-hero-tip-icon">2FA</span>
                             <div>
-                                <h3 class="h6 mb-1">Add 2FA to your accounts</h3>
-                                <p class="mb-0">Turn on two-factor authentication on every social account.</p>
+                                <h3 class="h6 mb-1"><?= e(t('tip_2fa_title')); ?></h3>
+                                <p class="mb-0"><?= e(t('tip_2fa_desc')); ?></p>
                             </div>
                         </div>
                         <div class="ss-hero-tip-card">
                             <span class="ss-hero-tip-icon">LINK</span>
                             <div>
-                                <h3 class="h6 mb-1">Check links before clicking</h3>
-                                <p class="mb-0">Verify the domain manually before logging in or opening a page.</p>
+                                <h3 class="h6 mb-1"><?= e(t('tip_link_title')); ?></h3>
+                                <p class="mb-0"><?= e(t('tip_link_desc')); ?></p>
                             </div>
                         </div>
                         <div class="ss-hero-tip-card">
                             <span class="ss-hero-tip-icon">PASS</span>
                             <div>
-                                <h3 class="h6 mb-1">Use strong unique passwords</h3>
-                                <p class="mb-0">Avoid reusing the same password across social and email accounts.</p>
+                                <h3 class="h6 mb-1"><?= e(t('tip_pass_title')); ?></h3>
+                                <p class="mb-0"><?= e(t('tip_pass_desc')); ?></p>
                             </div>
                         </div>
                     </div>
@@ -58,24 +57,24 @@ require_once __DIR__ . '/includes/header.php';
     <div class="col-md-4">
         <div class="card h-100 shadow-sm">
             <div class="card-body">
-                <h5 class="card-title">1. Submit Link</h5>
-                <p class="card-text">Paste any URL and run a quick risk analysis using predefined scam indicators.</p>
+                <h5 class="card-title"><?= e(t('step_1_title')); ?></h5>
+                <p class="card-text"><?= e(t('step_1_desc')); ?></p>
             </div>
         </div>
     </div>
     <div class="col-md-4">
         <div class="card h-100 shadow-sm">
             <div class="card-body">
-                <h5 class="card-title">2. Understand Risk</h5>
-                <p class="card-text">Get score, status badge, and reasons that explain why a link may be suspicious.</p>
+                <h5 class="card-title"><?= e(t('step_2_title')); ?></h5>
+                <p class="card-text"><?= e(t('step_2_desc')); ?></p>
             </div>
         </div>
     </div>
     <div class="col-md-4">
         <div class="card h-100 shadow-sm">
             <div class="card-body">
-                <h5 class="card-title">3. Learn Safe Habits</h5>
-                <p class="card-text">Review privacy and security recommendations for social media usage.</p>
+                <h5 class="card-title"><?= e(t('step_3_title')); ?></h5>
+                <p class="card-text"><?= e(t('step_3_desc')); ?></p>
             </div>
         </div>
     </div>

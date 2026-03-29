@@ -9,12 +9,12 @@ if (isLoggedIn()) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verifyCsrfToken($_POST['csrf_token'] ?? null)) {
-        setFlash('Invalid CSRF token.', 'danger');
+        setFlash(t('invalid_csrf'), 'danger');
         redirect('register.php');
     }
 
     if (!checkRateLimit('reg_' . ($_SERVER['REMOTE_ADDR'] ?? 'guest'), 3, 3600)) {
-        setFlash('Too many registration attempts. Please try again later.', 'danger');
+        setFlash(t('too_many_reg'), 'danger');
         redirect('register.php');
     }
 
@@ -24,17 +24,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $confirmPassword = (string) ($_POST['confirm_password'] ?? '');
 
     if ($name === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        setFlash('Please provide valid name and email.', 'warning');
+        setFlash(t('invalid_details'), 'warning');
         redirect('register.php');
     }
 
     if (strlen($password) < 6) {
-        setFlash('Password must be at least 6 characters.', 'warning');
+        setFlash(t('password_min_length'), 'warning');
         redirect('register.php');
     }
 
     if ($password !== $confirmPassword) {
-        setFlash('Passwords do not match.', 'warning');
+        setFlash(t('password_confirm_help'), 'warning');
         redirect('register.php');
     }
 
@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $existsStmt = $pdo->prepare('SELECT id FROM users WHERE email = :email LIMIT 1');
     $existsStmt->execute(['email' => $email]);
     if ($existsStmt->fetch()) {
-        setFlash('Email already exists. Please login.', 'warning');
+        setFlash(t('email_exists'), 'warning');
         redirect('login.php');
     }
 
@@ -62,11 +62,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'email' => $email,
         'role' => 'user',
     ]);
-    setFlash('Registration successful. Welcome to SocialShield.', 'success');
+    setFlash(t('welcome_msg'), 'success');
     redirect('scan.php');
 }
 
-$pageTitle = 'Register';
+$pageTitle = t('register');
 require_once __DIR__ . '/includes/header.php';
 ?>
 
@@ -74,56 +74,56 @@ require_once __DIR__ . '/includes/header.php';
     <div class="col-lg-6">
         <div class="card shadow-sm">
             <div class="card-body p-4">
-                <h2 class="h4 mb-3">Create account</h2>
+                <h2 class="h4 mb-3"><?= e(t('create_account')); ?></h2>
                 <form method="post" action="<?= e(appPath('register.php')); ?>" novalidate>
                     <input type="hidden" name="csrf_token" value="<?= e(csrfToken()); ?>">
                     <div class="mb-3">
-                        <label for="name" class="form-label">Full name</label>
+                        <label for="name" class="form-label"><?= e(t('full_name')); ?></label>
                         <input type="text" class="form-control" id="name" name="name" required>
                     </div>
                     <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
+                        <label for="email" class="form-label"><?= e(t('email_address')); ?></label>
                         <input type="email" class="form-control" id="email" name="email" required>
                     </div>
                     <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
+                        <label for="password" class="form-label"><?= e(t('password')); ?></label>
                         <div class="ss-password-shell">
-                            <input type="password" class="form-control ss-password-shell__input" id="password" name="password" placeholder="Create a secure password" required>
+                            <input type="password" class="form-control ss-password-shell__input" id="password" name="password" placeholder="<?= e(t('url_placeholder')); ?>" required>
                             <button
                                 type="button"
                                 class="btn ss-password-peek"
                                 data-monkey-toggle
                                 data-target="password"
-                                aria-label="Show password"
+                                aria-label="<?= e(t('show_password')); ?>"
                                 aria-pressed="false">
                                 <span class="ss-password-peek__emoji ss-password-peek__emoji--hidden" aria-hidden="true">&#x1F648;</span>
                                 <span class="ss-password-peek__emoji ss-password-peek__emoji--visible" aria-hidden="true">&#x1F435;</span>
                             </button>
                         </div>
-                        <div class="form-text">Your password must be at least 6 characters long.</div>
+                        <div class="form-text"><?= e(t('password_min_length')); ?></div>
                     </div>
                     <div class="mb-3">
-                        <label for="confirm_password" class="form-label">Confirm password</label>
+                        <label for="confirm_password" class="form-label"><?= e(t('confirm_password')); ?></label>
                         <div class="ss-password-shell">
-                            <input type="password" class="form-control ss-password-shell__input" id="confirm_password" name="confirm_password" placeholder="Repeat your password" required>
+                            <input type="password" class="form-control ss-password-shell__input" id="confirm_password" name="confirm_password" placeholder="<?= e(t('url_placeholder')); ?>" required>
                             <button
                                 type="button"
                                 class="btn ss-password-peek"
                                 data-monkey-toggle
                                 data-target="confirm_password"
-                                aria-label="Show password"
+                                aria-label="<?= e(t('show_password')); ?>"
                                 aria-pressed="false">
                                 <span class="ss-password-peek__emoji ss-password-peek__emoji--hidden" aria-hidden="true">&#x1F648;</span>
                                 <span class="ss-password-peek__emoji ss-password-peek__emoji--visible" aria-hidden="true">&#x1F435;</span>
                             </button>
                         </div>
-                        <div class="form-text">Repeat the same password to confirm it.</div>
+                        <div class="form-text"><?= e(t('password_confirm_help')); ?></div>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100">Register</button>
+                    <button type="submit" class="btn btn-primary w-100"><?= e(t('register')); ?></button>
                 </form>
                 <p class="text-center mt-3 mb-0">
-                    <span class="text-muted">Already have an account?</span>
-                    <a href="<?= e(appPath('login.php')); ?>" class="text-info text-decoration-none">Login here</a>
+                    <span class="text-muted"><?= e(t('already_have_account')); ?></span>
+                    <a href="<?= e(appPath('login.php')); ?>" class="text-info text-decoration-none"><?= e(t('login_here')); ?></a>
                 </p>
             </div>
         </div>
@@ -131,4 +131,5 @@ require_once __DIR__ . '/includes/header.php';
 </div>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
+
 

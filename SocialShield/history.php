@@ -16,22 +16,22 @@ require_once __DIR__ . '/includes/header.php';
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="h4 mb-0">Your Scan History</h2>
-    <a href="<?= e(appPath('scan.php')); ?>" class="btn btn-primary btn-sm">New Scan</a>
+    <h2 class="h4 mb-0"><?= e(t('history')); ?></h2>
+    <a href="<?= e(appPath('scan.php')); ?>" class="btn btn-primary btn-sm"><?= e(t('new_scan')); ?></a>
 </div>
 
 <?php if (!$scans): ?>
-    <div class="alert alert-info">No scans found yet. Try your first URL scan.</div>
+    <div class="alert alert-info"><?= e(t('no_scans')); ?></div>
 <?php else: ?>
     <div class="table-responsive">
         <table class="table table-striped align-middle">
             <thead>
             <tr>
-                <th>Date</th>
-                <th>URL</th>
-                <th>Score</th>
-                <th>Status</th>
-                <th>Reasons</th>
+                <th><?= e(t('date')); ?></th>
+                <th><?= e(t('url')); ?></th>
+                <th><?= e(t('score')); ?></th>
+                <th><?= e(t('status')); ?></th>
+                <th><?= e(t('reasons')); ?></th>
             </tr>
             </thead>
             <tbody>
@@ -54,7 +54,7 @@ require_once __DIR__ . '/includes/header.php';
                                 <?php endforeach; ?>
                             </ul>
                         <?php else: ?>
-                            <small class="text-muted">No reasons stored</small>
+                            <small class="text-muted"><?= e(t('no_reasons')); ?></small>
                         <?php endif; ?>
                     </td>
                 </tr>
