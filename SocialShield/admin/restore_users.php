@@ -172,7 +172,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $currentUsersStmt = $pdo->query('SELECT email FROM users');
 $currentEmails = array_flip(array_map('strtolower', array_column($currentUsersStmt->fetchAll(), 'email')));
 
-$pageTitle = 'Restore Users Backup';
+$pageTitle = t('restore_users_backup');
 require_once __DIR__ . '/../includes/header.php';
 ?>
 

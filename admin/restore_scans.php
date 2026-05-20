@@ -172,7 +172,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $currentScanStmt = $pdo->query('SELECT id FROM scans');
 $currentScanIds = array_flip(array_map('intval', $currentScanStmt->fetchAll(PDO::FETCH_COLUMN)));
 
-$pageTitle = 'Restore Scans Backup';
+$pageTitle = t('restore_scans_backup');
 require_once __DIR__ . '/../includes/header.php';
 ?>
 

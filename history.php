@@ -11,27 +11,27 @@ $stmt = $pdo->prepare('SELECT id, url, risk_score, status, reasons, scanned_at F
 $stmt->execute(['user_id' => (int) $user['id']]);
 $scans = $stmt->fetchAll();
 
-$pageTitle = 'Scan History';
+$pageTitle = t('history');
 require_once __DIR__ . '/includes/header.php';
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="h4 mb-0">Your Scan History</h2>
-    <a href="<?= e(appPath('scan.php')); ?>" class="btn btn-primary btn-sm">New Scan</a>
+    <h2 class="h4 mb-0"><?= e(t('history_title')); ?></h2>
+    <a href="<?= e(appPath('scan.php')); ?>" class="btn btn-primary btn-sm"><?= e(t('history_new_scan')); ?></a>
 </div>
 
 <?php if (!$scans): ?>
-    <div class="alert alert-info">No scans found yet. Try your first URL scan.</div>
+    <div class="alert alert-info"><?= e(t('history_empty')); ?></div>
 <?php else: ?>
     <div class="table-responsive">
         <table class="table table-striped align-middle">
             <thead>
             <tr>
-                <th>Date</th>
-                <th>URL</th>
-                <th>Score</th>
-                <th>Status</th>
-                <th>Reasons</th>
+                <th><?= e(t('history_table_date')); ?></th>
+                <th><?= e(t('history_table_url')); ?></th>
+                <th><?= e(t('history_table_score')); ?></th>
+                <th><?= e(t('history_table_status')); ?></th>
+                <th><?= e(t('history_table_reasons')); ?></th>
             </tr>
             </thead>
             <tbody>
@@ -54,7 +54,7 @@ require_once __DIR__ . '/includes/header.php';
                                 <?php endforeach; ?>
                             </ul>
                         <?php else: ?>
-                            <small class="text-muted">No reasons stored</small>
+                            <small class="text-muted"><?= e(t('history_no_reasons')); ?></small>
                         <?php endif; ?>
                     </td>
                 </tr>

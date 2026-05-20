@@ -7,7 +7,7 @@ $pdo = getPDO();
 $stmt = $pdo->query('SELECT title, description, category FROM security_tips ORDER BY category, id');
 $tips = $stmt->fetchAll();
 
-$pageTitle = 'Security Tips';
+$pageTitle = t('security_tips');
 require_once __DIR__ . '/includes/header.php';
 ?>
 

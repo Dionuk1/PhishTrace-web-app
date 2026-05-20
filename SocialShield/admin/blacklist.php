@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $stmt = $pdo->query('SELECT id, domain, reason, source, created_at FROM blacklist_domains ORDER BY created_at DESC');
 $domains = $stmt->fetchAll();
 
-$pageTitle = 'Blacklist Manager';
+$pageTitle = t('blacklist_manager');
 require_once __DIR__ . '/../includes/header.php';
 ?>
 

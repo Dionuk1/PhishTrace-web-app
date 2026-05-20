@@ -1,0 +1,5 @@
+id,name,email,password_hash,role,security_score,created_at
+1,"SocialShield Admin",admin@socialshield.local,$2y$10$8A8IEC6FYepjrLEI9zRU8.WlkfomkX53gq7XTPHVEHg.WBoBXbW4G,admin,319,"2026-03-10 22:38:24"
+2,"Student Demo",student@socialshield.local,$2y$10$zHrfWb/07kWxGxXDAGWN/eAtWZTxxvaz8Vwptgx4pysE4ky6UuYd2,user,99,"2026-03-10 22:38:24"
+6,L1ghterVibes,l1ghter@socialshield.local,$2y$10$At808NnooJsW6bAxOqrQIeJ5EYX6ao4T12lF25CuwZ4N69Sj1LZnm,user,33,"2026-03-09 04:37:05"
+11,Dion,dion@socialshield.local,$2y$10$KUkQt26llgsmRUnsErNsvO/l/rH7nTMlBQ3Gy1fJdpZNJs1ZrsFAq,user,0,"2026-05-15 00:36:20"

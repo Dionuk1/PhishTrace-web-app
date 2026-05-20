@@ -1,0 +1,4 @@
+id,name,email,password_hash,role,security_score,created_at
+1,"PhishTrace Admin",admin@socialshield.local,$2y$10$R5oeqOplAJg3VokBubl9TeiH7hbue3ylQklJsKShIEsv7rTe9x0a.,admin,10,"2026-05-06 14:50:02"
+2,"Student Demo",student@socialshield.local,$2y$10$ZPBLcusr28EIh6vUHFEkG.TjS8A77TK02GlW1mj5rsy4OHti/Baz6,user,0,"2026-05-06 14:50:02"
+3,L1ghterVibes,l1ghter@socialshield.local,$2y$10$At808NnooJsW6bAxOqrQIeJ5EYX6ao4T12lF25CuwZ4N69Sj1LZnm,user,13,"2026-03-09 04:37:05"

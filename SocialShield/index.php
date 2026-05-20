@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/includes/functions.php';
-$pageTitle = 'Home';
+$pageTitle = t('home');
 require_once __DIR__ . '/includes/header.php';
 ?>
 

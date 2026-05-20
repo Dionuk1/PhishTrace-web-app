@@ -1,0 +1,208 @@
+[
+    {
+        "id": 1,
+        "username": "testone1",
+        "message": "You data is exposed online click this link to protect ur data here: protect-data.me",
+        "detected_keywords": [
+            "click"
+        ],
+        "urls": [],
+        "url_analysis": [],
+        "risk_score": 10,
+        "risk_level": "LOW",
+        "timestamp": "2026-05-03 20:41:55"
+    },
+    {
+        "id": 2,
+        "username": "normal_user",
+        "message": "Hi, I wanted to ask about account privacy settings.",
+        "detected_keywords": [],
+        "urls": [],
+        "url_analysis": [],
+        "risk_score": 0,
+        "risk_level": "LOW",
+        "timestamp": "2026-05-03 20:47:46"
+    },
+    {
+        "id": 3,
+        "username": "promo_user",
+        "message": "Can you confirm the meeting time for tomorrow?",
+        "detected_keywords": [
+            "confirm"
+        ],
+        "urls": [],
+        "url_analysis": [],
+        "risk_score": 10,
+        "risk_level": "LOW",
+        "timestamp": "2026-05-03 20:48:09"
+    },
+    {
+        "id": 4,
+        "username": "link_user",
+        "message": "Please login here https://example.com/account to check your profile.",
+        "detected_keywords": [
+            "login"
+        ],
+        "urls": [
+            "https://example.com/account"
+        ],
+        "url_analysis": [
+            {
+                "url": "https://example.com/account",
+                "risk_flags": [],
+                "explanations": []
+            }
+        ],
+        "risk_score": 30,
+        "risk_level": "MEDIUM",
+        "timestamp": "2026-05-03 20:48:28"
+    },
+    {
+        "id": 5,
+        "username": "urgent_user",
+        "message": "Urgent, please verify your account today.\r\nurgent verify confirm",
+        "detected_keywords": [
+            "verify",
+            "urgent",
+            "confirm"
+        ],
+        "urls": [],
+        "url_analysis": [],
+        "risk_score": 30,
+        "risk_level": "MEDIUM",
+        "timestamp": "2026-05-03 20:49:08"
+    },
+    {
+        "id": 6,
+        "username": "phish_ip_user",
+        "message": "urgent verify login password click http://192.168.1.5/free-reward",
+        "detected_keywords": [
+            "verify",
+            "login",
+            "urgent",
+            "free",
+            "click",
+            "reward",
+            "password"
+        ],
+        "urls": [
+            "http://192.168.1.5/free-reward"
+        ],
+        "url_analysis": [
+            {
+                "url": "http://192.168.1.5/free-reward",
+                "risk_flags": [
+                    "uses_http",
+                    "uses_ip_address",
+                    "contains_suspicious_words"
+                ],
+                "explanations": {
+                    "uses_http": "URL uses http instead of https (traffic can be intercepted).",
+                    "uses_ip_address": "URL host is an IP address instead of a domain (often used to hide identity).",
+                    "contains_suspicious_words": "URL contains suspicious words: free, reward."
+                }
+            }
+        ],
+        "risk_score": 140,
+        "risk_level": "HIGH",
+        "timestamp": "2026-05-03 20:49:30"
+    },
+    {
+        "id": 7,
+        "username": "shortener_user",
+        "message": "Claim your free reward now: https://bit.ly/login-bonus",
+        "detected_keywords": [
+            "login",
+            "free",
+            "claim",
+            "reward"
+        ],
+        "urls": [
+            "https://bit.ly/login-bonus"
+        ],
+        "url_analysis": [
+            {
+                "url": "https://bit.ly/login-bonus",
+                "risk_flags": [
+                    "is_shortened",
+                    "contains_suspicious_words"
+                ],
+                "explanations": {
+                    "is_shortened": "URL uses a known shortener domain (bit.ly), which can hide the real destination.",
+                    "contains_suspicious_words": "URL contains suspicious words: login."
+                }
+            }
+        ],
+        "risk_score": 90,
+        "risk_level": "HIGH",
+        "timestamp": "2026-05-03 20:49:47"
+    },
+    {
+        "id": 8,
+        "username": "http_user",
+        "message": "Please verify your password at http://example.com/login",
+        "detected_keywords": [
+            "verify",
+            "login",
+            "password"
+        ],
+        "urls": [
+            "http://example.com/login"
+        ],
+        "url_analysis": [
+            {
+                "url": "http://example.com/login",
+                "risk_flags": [
+                    "uses_http",
+                    "contains_suspicious_words"
+                ],
+                "explanations": {
+                    "uses_http": "URL uses http instead of https (traffic can be intercepted).",
+                    "contains_suspicious_words": "URL contains suspicious words: login."
+                }
+            }
+        ],
+        "risk_score": 100,
+        "risk_level": "HIGH",
+        "timestamp": "2026-05-03 20:50:02"
+    },
+    {
+        "id": 9,
+        "username": "user1234",
+        "message": "click here to get 50$ of steam steam.io.com",
+        "detected_keywords": [
+            "click"
+        ],
+        "urls": [],
+        "url_analysis": [],
+        "risk_score": 10,
+        "risk_level": "LOW",
+        "timestamp": "2026-05-13 15:03:43"
+    },
+    {
+        "id": 10,
+        "username": "user1333",
+        "message": "click here to get 100$ or ur account could be at risk: clickmetoget100$.uii",
+        "detected_keywords": [
+            "click"
+        ],
+        "urls": [],
+        "url_analysis": [],
+        "risk_score": 10,
+        "risk_level": "LOW",
+        "timestamp": "2026-05-14 01:25:23"
+    },
+    {
+        "id": 11,
+        "username": "user1333",
+        "message": "click here to get 100 dollars or ur account could be at risk: clickmetoget100$.uii",
+        "detected_keywords": [
+            "click"
+        ],
+        "urls": [],
+        "url_analysis": [],
+        "risk_score": 10,
+        "risk_level": "LOW",
+        "timestamp": "2026-05-14 01:26:01"
+    }
+]

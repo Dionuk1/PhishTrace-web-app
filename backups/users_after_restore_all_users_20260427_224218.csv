@@ -1,0 +1,11 @@
+id,name,email,password_hash,role,security_score,created_at
+1,"SocialShield Admin",admin@socialshield.local,$2y$10$8A8IEC6FYepjrLEI9zRU8.WlkfomkX53gq7XTPHVEHg.WBoBXbW4G,admin,316,"2026-03-10 22:38:24"
+2,"Student Demo",student@socialshield.local,$2y$10$zHrfWb/07kWxGxXDAGWN/eAtWZTxxvaz8Vwptgx4pysE4ky6UuYd2,user,69,"2026-03-10 22:38:24"
+3,"Codex DB Test",codexdb20260310223921@local.test,$2y$10$HBAl3ix7Bu6YmhHScFPaEOkS2MJBJ4yFID8XCv9iSeJxFo7JEqERu,user,0,"2026-03-10 22:39:22"
+4,"Codex DB Test",codexdb20260310224044@local.test,$2y$10$Pg0/YdpUoeXpB/uosE664eSQMDQdCQn74UXL859k8ZfMmIgC2IDy2,user,0,"2026-03-10 22:40:45"
+5,"Codex DB Test",codexdb20260310224104@local.test,$2y$10$.QI1ykOyZBGLakuWA2NgUuO8/4KeToqUbmdDchD2r.FQT0niAMUvC,user,0,"2026-03-10 22:41:04"
+6,L1ghterVibes,l1ghter@socialshield.local,$2y$10$At808NnooJsW6bAxOqrQIeJ5EYX6ao4T12lF25CuwZ4N69Sj1LZnm,user,13,"2026-03-09 04:37:05"
+7,"Test User",test@example.com,$2y$10$wBCKImUpFuMMXuXtE9YK2eI24mhnHJA/Nf/UHiLx0PNmECAEuX7m2,user,3,"2026-03-29 23:04:49"
+8,"Test User",test2@example.com,$2y$10$OzkfwU6jQP1g4UlmRLjDyuuFf5py214VsedWMIy32c0mi3FB9s4TW,user,0,"2026-03-29 23:22:32"
+9,"Verification User",verify@test.com,$2y$10$WpbtS82cYfGxkrHm.kL8ouEbMlb7IFMEIx./0sa/NORyyIOeUr6g.,user,0,"2026-03-29 23:44:00"
+10,"Test User",verify2@example.com,$2y$10$kdUeu.GMpjNvsTJdFsMOc.kEZhO3wSrtABlMQt4eMf7YVfm7RQIwC,user,0,"2026-03-30 00:06:08"

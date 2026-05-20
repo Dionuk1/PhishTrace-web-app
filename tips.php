@@ -7,15 +7,15 @@ $pdo = getPDO();
 $stmt = $pdo->query('SELECT title, description, category FROM security_tips ORDER BY category, id');
 $tips = $stmt->fetchAll();
 
-$pageTitle = 'Security Tips';
+$pageTitle = t('security_tips');
 require_once __DIR__ . '/includes/header.php';
 ?>
 
-<h2 class="h4 mb-3">Security and Privacy Tips for Social Networks</h2>
-<p class="text-muted">These tips help reduce phishing, account takeover, and privacy leaks.</p>
+<h2 class="h4 mb-3"><?= e(t('tips_title')); ?></h2>
+<p class="text-muted"><?= e(t('tips_intro')); ?></p>
 
 <?php if (!$tips): ?>
-    <div class="alert alert-info">No tips found. Import the PhishTrace seed data first.</div>
+    <div class="alert alert-info"><?= e(t('tips_empty')); ?></div>
 <?php else: ?>
     <div class="row g-4">
         <?php foreach ($tips as $tip): ?>

@@ -1265,6 +1265,12 @@ if (!function_exists('t')) {
                 'suspicious_detected' => 'Suspicious Links',
                 'dangerous_detected' => 'Dangerous Links',
                 'scan_mix' => 'Risk Distribution',
+                'blacklist_manager' => 'Blacklist Manager',
+                'restore_users_backup' => 'Restore Users Backup',
+                'restore_scans_backup' => 'Restore Scans Backup',
+                'legacy_admin_tools' => 'Legacy Admin Tools',
+                'reset_password' => 'Reset Password',
+                'ai_summary_popup' => 'AI Security Assistant Summary',
             ],
             'sq' => [
                 'invalid_csrf' => 'Tokeni i sigurisë është i pavlefshëm. Ju lutem provoni përsëri.',
@@ -1385,6 +1391,12 @@ if (!function_exists('t')) {
                 'suspicious_detected' => 'Linke të Dyshimta',
                 'dangerous_detected' => 'Linke të Rrezikshme',
                 'scan_mix' => 'Shpërndarja e Rrezikut',
+                'blacklist_manager' => 'Menaxheri i Listës së Zezë',
+                'restore_users_backup' => 'Rikthimi i Backup të Përdoruesve',
+                'restore_scans_backup' => 'Rikthimi i Backup të Skanimeve',
+                'legacy_admin_tools' => 'Mjetet e Vjetra të Administratorit',
+                'reset_password' => 'Rivendos Fjalëkalimin',
+                'ai_summary_popup' => 'Përmbledhja e Asistentit AI',
             ],
         ];
 

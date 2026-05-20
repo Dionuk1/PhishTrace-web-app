@@ -21,7 +21,7 @@ if (!is_array($analysis) || empty($analysis['url'])) {
 
 $_SESSION['generate_ai_summary_pending'] = true;
 
-$pageTitle = 'AI Security Assistant';
+$pageTitle = t('ai_assistant');
 require_once __DIR__ . '/includes/header.php';
 ?>
 

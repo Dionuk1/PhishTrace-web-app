@@ -13,7 +13,7 @@ if (isset($_GET['lang'])) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verifyCsrfToken($_POST['csrf_token'] ?? null)) {
-        setFlash('Invalid CSRF token.', 'danger');
+        setFlash(t('invalid_csrf'), 'danger');
         redirect('settings.php');
     }
 

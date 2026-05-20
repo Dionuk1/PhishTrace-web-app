@@ -57,6 +57,10 @@ code {
     color: #9fd4ff;
 }
 
+.table code {
+    color: #e6f2ff;
+}
+
 .btn-primary {
     background-color: var(--ss-primary);
     border-color: var(--ss-primary);

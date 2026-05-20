@@ -1,0 +1,17 @@
+csrf_token|s:64:"3f805bf248ed74e18eb7d63625ecd7f8fcc289a8b77f1e106ca5ffcd25fe3765";user|a:4:{s:2:"id";i:1;s:4:"name";s:16:"PhishTrace Admin";s:5:"email";s:24:"admin@socialshield.local";s:4:"role";s:5:"admin";}latest_scan_id|i:306;latest_scan_summary|a:6:{s:3:"url";s:19:"http://did.li/U8JZH";s:6:"domain";s:6:"did.li";s:6:"status";s:4:"Safe";s:10:"risk_score";i:20;s:7:"reasons";a:1:{i:0;s:28:"URL does not use HTTPS (+20)";}s:5:"valid";b:1;}latest_scan_analysis|a:6:{s:3:"url";s:19:"http://did.li/U8JZH";s:6:"domain";s:6:"did.li";s:6:"status";s:4:"Safe";s:10:"risk_score";i:20;s:7:"reasons";a:1:{i:0;s:28:"URL does not use HTTPS (+20)";}s:5:"valid";b:1;}latest_ai_report|a:3:{s:4:"text";s:582:"AI Security Assistant Report
+
+Risk Level: Suspicious
+
+Threat Summary:
+- CheckPhish classified this URL as unknown.
+
+Reasons:
+- CheckPhish disposition: unknown
+- Confidence: Not provided
+- URL resolution: not resolved by CheckPhish
+
+Recommendations:
+- Do not enter credentials on the scanned page until the domain is independently verified.
+- Do not connect crypto wallets or approve browser wallet prompts on untrusted sites.
+- Confirm the brand domain manually and navigate to it directly instead of using the scanned link.
+- Verify the sender and domain before trusting this link.";s:6:"source";s:10:"checkphish";s:5:"error";N;}

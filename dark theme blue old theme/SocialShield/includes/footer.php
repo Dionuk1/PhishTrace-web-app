@@ -5,7 +5,7 @@
 
 <footer class="ss-footer py-4 mt-4">
     <div class="container text-center text-light">
-        <small>SocialShield | University Project: Security and Privacy in Social Networks</small>
+        <small>PhishTrace | University Project: Security and Privacy in Social Networks</small>
     </div>
 </footer>
 

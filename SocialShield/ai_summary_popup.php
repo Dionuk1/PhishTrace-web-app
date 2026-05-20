@@ -46,7 +46,7 @@ if (isset($_GET['partial']) && $_GET['partial'] === '1') {
     exit;
 }
 
-$pageTitle = 'AI Security Assistant Summary';
+$pageTitle = t('ai_summary_popup');
 require_once __DIR__ . '/includes/header.php';
 ?>
 <div class="row justify-content-center">

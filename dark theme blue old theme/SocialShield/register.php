@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'email' => $email,
         'role' => 'user',
     ]);
-    setFlash('Registration successful. Welcome to SocialShield.', 'success');
+    setFlash('Registration successful. Welcome to PhishTrace.', 'success');
     redirect('scan.php');
 }
 
