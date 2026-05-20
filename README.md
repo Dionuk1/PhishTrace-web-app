@@ -68,11 +68,11 @@ Edit `includes/db.php` if needed:
 ## Demo Credentials
 - Admin
 - Email: `admin@phishtrace.local`
-- Password: `password`
+- Password: `Password123!`
 
 - User
 - Email: `student@phishtrace.local`
-- Password: `password`
+- Password: `Password123!`
 
 ## Detection Rules
 - no HTTPS: +20
