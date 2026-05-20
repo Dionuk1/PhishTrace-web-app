@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Analyze URL | PhishTrace</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/analyze-url.css">
+</head>
+<body>
+    <div class="app-shell">
+        <header class="topbar">
+            <a class="brand" href="index.php" aria-label="PhishTrace home">
+                <span class="brand-mark">PT</span>
+                <span>
+                    <strong>PhishTrace</strong>
+                    <small>URL Intelligence Console</small>
+                </span>
+            </a>
+            <nav class="nav-links" aria-label="Main navigation">
+                <a href="index.php">Home</a>
+                <a href="history.php">History</a>
+                <a href="tips.php">Tips</a>
+            </nav>
+        </header>
+
+        <main>
+            <section class="hero-grid">
+                <div class="hero-copy">
+                    <span class="eyebrow">CheckPhish quick scan</span>
+                    <h1>Analyze suspicious URLs before they reach your users.</h1>
+                    <p>
+                        Submit a URL for rapid threat classification, confidence scoring, screenshot preview,
+                        categories, and scan timing in a focused SOC dashboard view.
+                    </p>
+                </div>
+
+                <form class="scan-card glass-card" id="scanForm" novalidate>
+                    <div class="scan-card-header">
+                        <div>
+                            <span class="panel-label">Live URL Scan</span>
+                            <h2>Analyze URL</h2>
+                        </div>
+                        <span class="pulse-dot" aria-hidden="true"></span>
+                    </div>
+
+                    <label for="urlInput">Target URL</label>
+                    <div class="input-row">
+                        <input id="urlInput" name="url" type="url" placeholder="https://example.com" autocomplete="url" required>
+                        <button class="scan-button" id="scanButton" type="submit">
+                            <span class="button-glow" aria-hidden="true"></span>
+                            <span class="button-text">Scan Now</span>
+                        </button>
+                    </div>
+                    <p class="input-help" id="inputHelp">Enter a complete URL beginning with http:// or https://.</p>
+
+                    <div class="scan-loader" id="scanLoader" hidden>
+                        <div class="loader-ring" aria-hidden="true"></div>
+                        <div>
+                            <strong>Scanning target</strong>
+                            <span>Submitting job and waiting for CheckPhish intelligence.</span>
+                        </div>
+                    </div>
+                </form>
+            </section>
+
+            <section class="dashboard-grid" aria-label="Threat dashboard">
+                <article class="result-card glass-card result-card-main" id="resultCard">
+                    <div class="empty-state" id="emptyState">
+                        <span class="empty-icon">URL</span>
+                        <h2>No scan selected</h2>
+                        <p>Run a scan to populate the threat analysis console.</p>
+                    </div>
+
+                    <div class="result-content" id="resultContent" hidden>
+                        <div class="result-topline">
+                            <div>
+                                <span class="panel-label">Threat Analysis</span>
+                                <h2 id="resultUrl">-</h2>
+                            </div>
+                            <span class="threat-badge" id="threatBadge">Pending</span>
+                        </div>
+
+                        <div class="preview-panel" id="screenshotPreview">
+                            <span>Screenshot preview unavailable</span>
+                        </div>
+
+                        <div class="metrics-grid">
+                            <div class="metric-tile">
+                                <span>Threat status</span>
+                                <strong id="threatStatus">-</strong>
+                            </div>
+                            <div class="metric-tile">
+                                <span>Confidence</span>
+                                <strong id="confidenceScore">-</strong>
+                            </div>
+                            <div class="metric-tile">
+                                <span>Scan time</span>
+                                <strong id="scanTime">-</strong>
+                            </div>
+                        </div>
+
+                        <div class="category-section">
+                            <span class="panel-label">Categories</span>
+                            <div class="category-list" id="categoryList"></div>
+                        </div>
+                    </div>
+                </article>
+
+                <aside class="side-stack">
+                    <article class="glass-card signal-card">
+                        <span class="panel-label">Threat levels</span>
+                        <div class="level-list">
+                            <span class="level-pill safe">Safe</span>
+                            <span class="level-pill warning">Suspicious</span>
+                            <span class="level-pill danger">Phishing</span>
+                        </div>
+                    </article>
+
+                    <article class="glass-card history-card">
+                        <div class="history-header">
+                            <div>
+                                <span class="panel-label">Local history</span>
+                                <h2>Recent scans</h2>
+                            </div>
+                            <button class="clear-button" id="clearHistory" type="button">Clear</button>
+                        </div>
+                        <div class="history-list" id="historyList"></div>
+                    </article>
+                </aside>
+            </section>
+        </main>
+    </div>
+
+    <div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="true"></div>
+    <script src="assets/js/analyze-url.js"></script>
+</body>
+</html>

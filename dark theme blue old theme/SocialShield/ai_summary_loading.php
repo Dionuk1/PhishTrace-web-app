@@ -15,6 +15,21 @@ if (!verifyCsrfToken($_POST['csrf_token'] ?? null)) {
 
 $analysis = $_SESSION['latest_scan_analysis'] ?? null;
 if (!is_array($analysis) || empty($analysis['url'])) {
+    $user = currentUser();
+    if ($user) {
+        $pdo = getPDO();
+        $stmt = $pdo->prepare('SELECT url FROM scans WHERE user_id = :user_id ORDER BY scanned_at DESC LIMIT 1');
+        $stmt->execute(['user_id' => (int) $user['id']]);
+        $row = $stmt->fetch();
+        if ($row && !empty($row['url'])) {
+            $analysis = analyzeUrl((string) $row['url'], $pdo);
+            if (is_array($analysis) && !empty($analysis['url'])) {
+                $_SESSION['latest_scan_analysis'] = $analysis;
+            }
+        }
+    }
+}
+if (!is_array($analysis) || empty($analysis['url'])) {
     setFlash('No scan analysis is available for AI summarization.', 'warning');
     redirect('scan.php');
 }
@@ -30,7 +45,7 @@ require_once __DIR__ . '/includes/header.php';
         <span class="ss-spinner ss-spinner--lg" aria-hidden="true"></span>
         <p class="ss-kicker mb-2">AI Security Assistant</p>
         <h1 class="ss-title mb-3">AI analyzing website...</h1>
-        <p class="ss-lead mb-0">SocialShield is generating a phishing explanation and security recommendations from the detected threat indicators.</p>
+        <p class="ss-lead mb-0">PhishTrace is generating a phishing explanation and security recommendations from the detected threat indicators.</p>
     </div>
 </section>
 

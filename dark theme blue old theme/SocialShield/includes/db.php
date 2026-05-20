@@ -218,7 +218,7 @@ function resolveDatabaseName(PDO $serverPdo): string
         // Fallback for restricted users without CREATE DATABASE permission.
     }
 
-    foreach ([DB_NAME, 'socialshield', 'social shield'] as $candidate) {
+    foreach ([DB_NAME, 'phishtrace', 'phish trace'] as $candidate) {
         $stmt = $serverPdo->prepare(
             'SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = :name LIMIT 1'
         );
@@ -245,14 +245,14 @@ function ensureDemoAdmin(PDO $pdo): void
         'INSERT INTO users (name, email, password_hash, role) VALUES (:name, :email, :password_hash, :role)'
     );
     $stmt->execute([
-        'name' => 'SocialShield Admin',
-        'email' => 'admin@socialshield.local',
+        'name' => 'PhishTrace Admin',
+        'email' => 'admin@phishtrace.local',
         'password_hash' => password_hash('Admin123!', PASSWORD_DEFAULT),
         'role' => 'admin',
     ]);
     $stmt->execute([
         'name' => 'Student Demo',
-        'email' => 'student@socialshield.local',
+        'email' => 'student@phishtrace.local',
         'password_hash' => password_hash('Student123!', PASSWORD_DEFAULT),
         'role' => 'user',
     ]);
@@ -381,9 +381,9 @@ function getPDO(): PDO
         http_response_code(500);
         exit(
             'Database connection failed.' . PHP_EOL .
-            '1) Open phpMyAdmin and create database socialshield' . PHP_EOL .
-            '2) Import your socialshield SQL backup' . PHP_EOL .
-            '3) Open http://localhost/socialshield'
+            '1) Open phpMyAdmin and create database phishtrace' . PHP_EOL .
+            '2) Import your phishtrace SQL backup' . PHP_EOL .
+            '3) Open http://localhost/phishtrace'
         );
     }
 

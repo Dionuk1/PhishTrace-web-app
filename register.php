@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     redirect('scan.php');
 }
 
-$pageTitle = 'Register';
+$pageTitle = t('register');
 require_once __DIR__ . '/includes/header.php';
 ?>
 

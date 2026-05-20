@@ -274,4 +274,82 @@ require_once __DIR__ . '/includes/header.php';
 </script>
 <?php endif; ?>
 
+<style>
+/* Achievement Unlocked - Enhanced Visual Styles */
+body:has(#achievementPopup.show) {
+    overflow: hidden !important;
+}
+
+body:has(#achievementPopup.show) main,
+body:has(#achievementPopup.show) .ss-navbar,
+body:has(#achievementPopup.show) .ss-footer {
+    filter: blur(25px) brightness(0.4);
+    pointer-events: none;
+}
+
+body:has(#achievementPopup.show) .modal-backdrop.show {
+    opacity: 0.85 !important;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(25px) brightness(0.4);
+    -webkit-backdrop-filter: blur(25px) brightness(0.4);
+    z-index: 9990;
+}
+
+#achievementPopup.modal {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: auto;
+    overflow: hidden;
+    z-index: 10000;
+}
+
+#achievementPopup.show {
+    display: block !important;
+    padding: 0 !important;
+}
+
+#achievementPopup .modal-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: min(500px, calc(100% - 1rem));
+    max-width: 500px;
+    margin: 0 !important;
+    padding: 0;
+    transform: translate(-50%, -50%);
+}
+
+#achievementPopup .modal-dialog-centered {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+#achievementPopup.fade .modal-dialog {
+    transform: translate(-50%, -54%) scale(0.98);
+}
+
+#achievementPopup.show .modal-dialog {
+    transform: translate(-50%, -50%);
+    animation: ss-achievement-bounce 0.55s cubic-bezier(0.2, 0.9, 0.2, 1.2) both;
+}
+
+@keyframes ss-achievement-bounce {
+    0% {
+        transform: translate(-50%, -60%) scale(0.92);
+        opacity: 0;
+    }
+    60% {
+        transform: translate(-50%, -45%) scale(1.02);
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+}
+</style>
+
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

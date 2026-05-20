@@ -12,7 +12,7 @@ $totalScans = (int) $pdo->query('SELECT COUNT(*) FROM scans')->fetchColumn();
 $dangerousScans = (int) $pdo->query("SELECT COUNT(*) FROM scans WHERE status = 'Dangerous'")->fetchColumn();
 $blacklistCount = (int) $pdo->query('SELECT COUNT(*) FROM blacklist_domains')->fetchColumn();
 
-$pageTitle = 'Admin Dashboard';
+$pageTitle = t('admin_dashboard');
 require_once __DIR__ . '/../includes/header.php';
 ?>
 

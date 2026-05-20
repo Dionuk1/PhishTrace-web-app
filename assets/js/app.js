@@ -1,5 +1,10 @@
 // Simple front-end helpers for better UX.
 document.addEventListener('DOMContentLoaded', () => {
+    document.body.classList.add('ss-ready');
+    window.addEventListener('beforeunload', () => {
+        document.body.classList.add('ss-page-leaving');
+    });
+
     // Ask for confirmation before deleting blacklist entries.
     document.querySelectorAll('.js-confirm-delete').forEach((button) => {
         button.addEventListener('click', (event) => {
@@ -17,6 +22,18 @@ document.addEventListener('DOMContentLoaded', () => {
             urlInput.value = urlInput.value.trim();
         });
     }
+
+    document.querySelectorAll('form').forEach((form) => {
+        form.addEventListener('submit', () => {
+            const submitter = form.querySelector('button[type="submit"], input[type="submit"]');
+            if (!submitter || submitter.hasAttribute('data-no-loading')) {
+                return;
+            }
+
+            submitter.classList.add('ss-is-submitting');
+            form.classList.add('ss-form-submitting');
+        });
+    });
 
     // Toggle password visibility with the refreshed monkey control.
     document.querySelectorAll('[data-monkey-toggle]').forEach((button) => {

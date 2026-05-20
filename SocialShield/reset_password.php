@@ -93,7 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     redirect('login.php');
 }
 
-$pageTitle = 'Reset Password';
+$pageTitle = t('reset_password');
 require_once __DIR__ . '/includes/header.php';
 ?>
 

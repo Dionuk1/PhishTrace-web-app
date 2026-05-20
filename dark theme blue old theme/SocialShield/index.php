@@ -11,13 +11,14 @@ require_once __DIR__ . '/includes/header.php';
         <div class="row g-4 align-items-stretch">
             <div class="col-lg-7">
                 <div class="ss-hero-main h-100">
-                    <h1 class="display-5 fw-bold">Stay safer on social networks with SocialShield</h1>
+                    <h1 class="display-5 fw-bold">Stay safer on social networks with PhishTrace</h1>
                     <p class="fs-5 ss-hero-copy">
                         This beginner-friendly web app demonstrates rule-based phishing link detection,
                         privacy awareness, and secure coding basics in PHP.
                     </p>
                     <div class="d-flex gap-3 flex-wrap ss-hero-actions">
                         <a href="<?= e(appPath('scan.php')); ?>" class="btn ss-btn-hero-primary btn-lg">Scan a URL</a>
+                        <a href="<?= e(appPath('honeypot.php')); ?>" class="btn ss-btn-hero-secondary btn-lg">📨 Send Tip</a>
                         <a href="<?= e(appPath('tips.php')); ?>" class="btn ss-btn-hero-secondary btn-lg">Read Security Tips</a>
                     </div>
                 </div>

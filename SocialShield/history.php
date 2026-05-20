@@ -11,7 +11,7 @@ $stmt = $pdo->prepare('SELECT id, url, risk_score, status, reasons, scanned_at F
 $stmt->execute(['user_id' => (int) $user['id']]);
 $scans = $stmt->fetchAll();
 
-$pageTitle = 'Scan History';
+$pageTitle = t('history');
 require_once __DIR__ . '/includes/header.php';
 ?>
 

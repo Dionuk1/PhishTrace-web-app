@@ -9,6 +9,11 @@ require_once __DIR__ . '/auth.php';
 /**
  * Build base URL like "/phishtrace" regardless of current script depth.
  */
+/**
+ * APP BASE URL
+ * Determines the root directory of the application dynamically.
+ * Useful for building paths that work across different server environments.
+ */
 function appBaseUrl(): string
 {
     static $base = null;
@@ -19,6 +24,7 @@ function appBaseUrl(): string
 
     $scriptName = str_replace('\\', '/', (string) ($_SERVER['SCRIPT_NAME'] ?? ''));
     if (str_contains($scriptName, '/admin/')) {
+        // Handle admin subdirectory specifically
         $base = (string) preg_replace('#/admin/.*$#', '', $scriptName);
     } else {
         $base = str_replace('\\', '/', dirname($scriptName));
@@ -32,7 +38,8 @@ function appBaseUrl(): string
 }
 
 /**
- * Build absolute in-app URL path.
+ * APP PATH
+ * Constructs an absolute internal URL for resources or pages.
  */
 function appPath(string $path = ''): string
 {
@@ -42,7 +49,9 @@ function appPath(string $path = ''): string
 }
 
 /**
- * Basic output escaping for HTML.
+ * OUTPUT ESCAPING (e)
+ * Prevents XSS (Cross-Site Scripting) by converting special characters 
+ * into HTML entities before rendering them in the browser.
  */
 function e(?string $value): string
 {
@@ -50,7 +59,8 @@ function e(?string $value): string
 }
 
 /**
- * Redirect and stop script execution.
+ * REDIRECT
+ * Sends the user to a new location within the app and terminates execution.
  */
 function redirect(string $path): void
 {
@@ -59,7 +69,8 @@ function redirect(string $path): void
 }
 
 /**
- * Flash message setter.
+ * FLASH MESSAGES
+ * Sets a temporary message in the session to be displayed after a redirect.
  */
 function setFlash(string $message, string $type = 'info'): void
 {
@@ -67,7 +78,8 @@ function setFlash(string $message, string $type = 'info'): void
 }
 
 /**
- * Flash message getter (one-time).
+ * GET FLASH
+ * Retrieves and clears the flash message from the session.
  */
 function getFlash(): ?array
 {
@@ -81,7 +93,8 @@ function getFlash(): ?array
 }
 
 /**
- * Generate and return CSRF token for forms.
+ * CSRF TOKEN GENERATION
+ * Generates a cryptographically secure random token for form protection.
  */
 function csrfToken(): string
 {
@@ -92,7 +105,9 @@ function csrfToken(): string
 }
 
 /**
- * Validate CSRF token from POST request.
+ * CSRF TOKEN VERIFICATION
+ * Validates a submitted token against the one stored in the session.
+ * This is non-destructive (no unset) to allow reliable multi-step workflows.
  */
 function verifyCsrfToken(?string $token): bool
 {
@@ -100,14 +115,12 @@ function verifyCsrfToken(?string $token): bool
         return false;
     }
 
-    $isValid = hash_equals($_SESSION['csrf_token'], $token);
-    unset($_SESSION['csrf_token']);
-
-    return $isValid;
+    return hash_equals($_SESSION['csrf_token'], $token);
 }
 
 /**
- * Clean URL input from the user.
+ * INPUT SANITIZATION
+ * Cleans user-submitted URLs to prevent injection and malformed requests.
  */
 function sanitizeUrlInput(string $url): string
 {
@@ -115,7 +128,9 @@ function sanitizeUrlInput(string $url): string
 }
 
 /**
- * Normalize domain for list comparisons.
+ * DOMAIN NORMALIZATION
+ * Extracts the primary domain from a URL (e.g., "https://www.google.com/search" -> "google.com").
+ * Used for comparing against blacklists/whitelists.
  */
 function normalizeDomain(string $host): string
 {
@@ -130,7 +145,8 @@ function normalizeDomain(string $host): string
 }
 
 /**
- * Map score to the project thresholds.
+ * RISK SCORE TO STATUS
+ * Maps a numerical risk score (0-100) to a user-friendly status label.
  */
 function scoreToStatus(int $score): string
 {
@@ -144,7 +160,8 @@ function scoreToStatus(int $score): string
 }
 
 /**
- * Return badge class for result status.
+ * STATUS BADGE CLASS
+ * Returns the CSS class for status badges (Bootstrap style).
  */
 function statusBadgeClass(string $status): string
 {
@@ -157,7 +174,8 @@ function statusBadgeClass(string $status): string
 }
 
 /**
- * User-facing label for risk state.
+ * STATUS DISPLAY LABEL
+ * Formats status strings for the user interface.
  */
 function statusDisplayLabel(string $status): string
 {
@@ -168,7 +186,8 @@ function statusDisplayLabel(string $status): string
 }
 
 /**
- * Return environment variable from common sources.
+ * ENVIRONMENT VALUES
+ * Safely retrieves configuration variables from various server sources (ENV, SERVER, etc.).
  */
 function envValue(string $key, ?string $default = null): ?string
 {
@@ -189,7 +208,167 @@ function envValue(string $key, ?string $default = null): ?string
 }
 
 /**
- * Block SSRF fetches to private or reserved network targets.
+ * CHECKPHISH API: POST REQUEST
+ * Low-level helper to communicate with the Bolster/CheckPhish API.
+ */
+function checkPhishPostJson(string $endpoint, array $payload, int $timeout = 12): array
+{
+    if (!function_exists('curl_init')) {
+        return [
+            'ok' => false,
+            'error' => 'cURL is not available for CheckPhish API requests.',
+            'status_code' => 0,
+            'data' => null,
+        ];
+    }
+
+    $ch = curl_init($endpoint);
+    curl_setopt_array($ch, [
+        CURLOPT_POST => true,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_CONNECTTIMEOUT => 5,
+        CURLOPT_TIMEOUT => $timeout,
+        CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+        CURLOPT_POSTFIELDS => json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+    ]);
+
+    $rawResponse = curl_exec($ch);
+    $curlError = curl_error($ch);
+    $statusCode = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+    unset($ch);
+
+    $decoded = is_string($rawResponse) && $rawResponse !== ''
+        ? json_decode($rawResponse, true)
+        : null;
+
+    if ($statusCode >= 400 || !is_array($decoded)) {
+        $errorPayload = is_array($decoded['error'] ?? null) ? $decoded['error'] : [];
+        $apiError = is_array($decoded)
+            ? (string) ($decoded['message'] ?? $errorPayload['message'] ?? $errorPayload['status'] ?? '')
+            : '';
+
+        return [
+            'ok' => false,
+            'error' => $apiError !== '' ? $apiError : ($curlError !== '' ? $curlError : 'CheckPhish API request failed.'),
+            'status_code' => $statusCode,
+            'data' => $decoded,
+        ];
+    }
+
+    return [
+        'ok' => true,
+        'error' => null,
+        'status_code' => $statusCode,
+        'data' => $decoded,
+    ];
+}
+
+/**
+ * CHECKPHISH API: FULL SCAN FLOW
+ * Handles submission and polling to get a final security disposition for a URL.
+ */
+function fetchCheckPhishAnalysis(string $url): array
+{
+    $apiKey = envValue('CHECKPHISH_API_KEY', 'frjk6y11c3pn7srlxzn6s2j44gjiv06189zyxn0zdrcqxxa86prw3rsb01exqsk2');
+    if ($apiKey === null || $apiKey === '') {
+        return [
+            'ok' => false,
+            'error' => 'CHECKPHISH_API_KEY is not configured.',
+        ];
+    }
+
+    $scan = checkPhishPostJson('https://developers.bolster.ai/api/neo/scan', [
+        'apiKey' => $apiKey,
+        'urlInfo' => ['url' => $url],
+        'scanType' => 'quick',
+    ]);
+
+    if (!$scan['ok']) {
+        return [
+            'ok' => false,
+            'error' => $scan['error'],
+        ];
+    }
+
+    $scanData = is_array($scan['data']) ? $scan['data'] : [];
+    $jobId = (string) ($scanData['jobID'] ?? $scanData['jobId'] ?? $scanData['job_id'] ?? '');
+    if ($jobId === '') {
+        return [
+            'ok' => false,
+            'error' => 'CheckPhish did not return a jobID.',
+        ];
+    }
+
+    $latestStatus = null;
+    for ($attempt = 0; $attempt < 4; $attempt++) {
+        sleep(3);
+
+        $status = checkPhishPostJson('https://developers.bolster.ai/api/neo/scan/status', [
+            'apiKey' => $apiKey,
+            'jobID' => $jobId,
+            'insights' => true,
+        ], 15);
+
+        if (!$status['ok']) {
+            return [
+                'ok' => false,
+                'job_id' => $jobId,
+                'error' => $status['error'],
+            ];
+        }
+
+        $latestStatus = is_array($status['data']) ? $status['data'] : [];
+        if (strtoupper((string) ($latestStatus['status'] ?? '')) === 'DONE') {
+            break;
+        }
+    }
+
+    if (!is_array($latestStatus)) {
+        return [
+            'ok' => false,
+            'job_id' => $jobId,
+            'error' => 'CheckPhish status response was empty.',
+        ];
+    }
+
+    $categories = [];
+    $confidence = null;
+    foreach (($latestStatus['categories'] ?? []) as $category) {
+        if (is_array($category)) {
+            if (isset($category['score']) && is_numeric($category['score'])) {
+                $confidence = max((float) ($confidence ?? 0), (float) $category['score']);
+            }
+
+            $categories[] = (string) ($category['category'] ?? $category['name'] ?? 'Uncategorized');
+            continue;
+        }
+
+        if (is_string($category) && $category !== '') {
+            $categories[] = $category;
+        }
+    }
+
+    return [
+        'ok' => true,
+        'job_id' => $jobId,
+        'status' => (string) ($latestStatus['status'] ?? 'PENDING'),
+        'disposition' => (string) ($latestStatus['disposition'] ?? 'unknown'),
+        'brand' => (string) ($latestStatus['brand'] ?? ''),
+        'confidence' => $confidence,
+        'resolved' => (bool) ($latestStatus['resolved'] ?? false),
+        'screenshot_path' => (string) ($latestStatus['screenshot_path'] ?? ''),
+        'insights' => (string) ($latestStatus['insights'] ?? ''),
+        'scan_time_ms' => !empty($latestStatus['scan_start_ts']) && !empty($latestStatus['scan_end_ts'])
+            ? max(0, (int) $latestStatus['scan_end_ts'] - (int) $latestStatus['scan_start_ts'])
+            : null,
+        'categories' => array_values(array_unique(array_filter($categories))),
+        'raw' => $latestStatus,
+    ];
+}
+
+/**
+ * SSRF PROTECTION
+ * Prevents the server from making requests to internal/private IP ranges.
  */
 function isSsrfBlockedUrl(string $url): bool
 {
@@ -249,7 +428,7 @@ function fetchRemoteHtml(string $url): array
         $error = curl_error($ch);
         $statusCode = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
         $contentType = (string) curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
-        curl_close($ch);
+        unset($ch);
 
         if (is_string($body) && $body !== '') {
             return [
@@ -505,73 +684,70 @@ function riskBarTone(string $status): string
     };
 }
 
-/**
- * Build prompt payload for AI explanation.
- */
-function buildAiSecurityPrompt(array $analysis): string
+function checkPhishRiskLevel(array $analysis): string
 {
-    $indicatorLines = [];
-    foreach (buildThreatIndicators($analysis) as $indicator) {
-        $indicatorLines[] = $indicator['label'] . ': ' . $indicator['value'];
+    $checkPhish = is_array($analysis['checkphish'] ?? null) ? $analysis['checkphish'] : [];
+    $disposition = strtolower((string) ($checkPhish['disposition'] ?? ''));
+
+    if ($disposition === 'clean') {
+        return 'Safe';
     }
 
-    return implode("\n", [
-        'Analyze this website security scan and write a short professional report.',
-        'URL: ' . $analysis['url'],
-        'Domain: ' . $analysis['domain'],
-        'Risk score: ' . $analysis['risk_score'] . '/100',
-        'Risk level: ' . statusDisplayLabel($analysis['status']),
-        'Fetch status: ' . ($analysis['fetch']['ok'] ? 'HTML fetched successfully' : 'HTML fetch failed'),
-        'Detected reasons: ' . implode('; ', $analysis['reasons']),
-        'Threat indicators:',
-        implode("\n", $indicatorLines),
-        'Required format:',
-        'AI Security Assistant Report',
-        'Risk Level: <Safe/Suspicious/High>',
-        'Reasons:',
-        '- bullet list',
-        'Recommendations:',
-        '- bullet list',
-    ]);
+    if (in_array($disposition, ['phish', 'phishing', 'malicious', 'scam', 'likely_phish', 'hacked_website', 'cryptojacking'], true)) {
+        return 'Dangerous';
+    }
+
+    if ($disposition === 'suspicious' || $disposition === 'unknown' || $disposition === '') {
+        return 'Suspicious';
+    }
+
+    return 'Suspicious';
+}
+
+function formatCheckPhishConfidence($confidence): string
+{
+    if ($confidence === null || !is_numeric($confidence)) {
+        return 'Not provided';
+    }
+
+    $confidence = (float) $confidence;
+
+    if ($confidence <= 1) {
+        return (string) round($confidence * 100) . '%';
+    }
+
+    return (string) round($confidence) . '%';
 }
 
 /**
- * Extract text from OpenAI Responses API payload.
- */
-function extractOpenAiText(array $response): string
-{
-    if (!empty($response['output_text']) && is_string($response['output_text'])) {
-        return trim($response['output_text']);
-    }
-
-    if (!empty($response['output']) && is_array($response['output'])) {
-        $chunks = [];
-        foreach ($response['output'] as $item) {
-            if (empty($item['content']) || !is_array($item['content'])) {
-                continue;
-            }
-
-            foreach ($item['content'] as $content) {
-                if (($content['type'] ?? '') === 'output_text' && !empty($content['text'])) {
-                    $chunks[] = trim((string) $content['text']);
-                }
-            }
-        }
-
-        return trim(implode("\n", array_filter($chunks)));
-    }
-
-    return '';
-}
-
-/**
- * Fallback explanation when OpenAI is unavailable.
+ * AI SUMMARY BUILDER
+ * Compiles a structured textual security report from scan data.
  */
 function buildFallbackAiReport(array $analysis): string
 {
+    $checkPhish = is_array($analysis['checkphish'] ?? null) ? $analysis['checkphish'] : [];
+    $riskLevel = checkPhishRiskLevel($analysis);
     $reasons = [];
-    foreach ($analysis['reasons'] as $reason) {
-        $reasons[] = '- ' . preg_replace('/\s*\(\+\d+\)$/', '', $reason);
+
+    if (empty($checkPhish['ok'])) {
+        $reasons[] = '- CheckPhish scan was unavailable: ' . (string) ($checkPhish['error'] ?? 'unknown error');
+        foreach ($analysis['reasons'] as $reason) {
+            $reasons[] = '- ' . preg_replace('/\s*\(\+\d+\)$/', '', $reason);
+        }
+    } else {
+        $disposition = (string) ($checkPhish['disposition'] ?? 'unknown');
+        $reasons[] = '- CheckPhish disposition: ' . $disposition;
+        $reasons[] = '- Confidence: ' . formatCheckPhishConfidence($checkPhish['confidence'] ?? null);
+
+        if (($checkPhish['brand'] ?? '') !== '') {
+            $reasons[] = '- Brand signal: ' . (string) $checkPhish['brand'];
+        }
+
+        if (($checkPhish['categories'] ?? []) !== []) {
+            $reasons[] = '- Categories: ' . implode(', ', $checkPhish['categories']);
+        }
+
+        $reasons[] = '- URL resolution: ' . (!empty($checkPhish['resolved']) ? 'resolved by CheckPhish' : 'not resolved by CheckPhish');
     }
 
     $recommendations = [
@@ -580,14 +756,25 @@ function buildFallbackAiReport(array $analysis): string
         '- Confirm the brand domain manually and navigate to it directly instead of using the scanned link.',
     ];
 
-    if ($analysis['html_analysis']['brand_mentions'] === [] && $analysis['html_analysis']['wallet_prompts'] === []) {
+    if ($riskLevel === 'Dangerous') {
+        $recommendations[] = '- Treat this URL as unsafe and avoid opening it on a primary device or network.';
+    } elseif ($riskLevel === 'Suspicious') {
+        $recommendations[] = '- Verify the sender and domain before trusting this link.';
+    } else {
         $recommendations[] = '- Continue checking for cloned login pages, unexpected downloads, or unusual payment requests.';
     }
+
+    $summary = empty($checkPhish['ok'])
+        ? 'CheckPhish could not complete the scan, so the current local indicators are shown as a fallback.'
+        : 'CheckPhish classified this URL as ' . (string) ($checkPhish['disposition'] ?? 'unknown') . '.';
 
     return implode("\n", [
         'AI Security Assistant Report',
         '',
-        'Risk Level: ' . statusDisplayLabel($analysis['status']),
+        'Risk Level: ' . $riskLevel,
+        '',
+        'Threat Summary:',
+        '- ' . $summary,
         '',
         'Reasons:',
         implode("\n", $reasons),
@@ -647,88 +834,19 @@ function renderAiReportHtml(string $report): string
 }
 
 /**
- * Generate AI explanation using OpenAI with graceful fallback.
+ * AI ASSISTANT DISPATCHER
+ * Generates the security report, ensuring API results are present.
  */
 function generateAiSecurityAssistantReport(array $analysis): array
 {
-    $apiKey = envValue('OPENAI_API_KEY');
-    $model = envValue('OPENAI_MODEL', 'gpt-4.1-mini');
-
-    if ($apiKey === null) {
-        return [
-            'text' => buildFallbackAiReport($analysis),
-            'source' => 'fallback',
-            'error' => 'OPENAI_API_KEY is not configured.',
-        ];
-    }
-
-    if (!function_exists('curl_init')) {
-        return [
-            'text' => buildFallbackAiReport($analysis),
-            'source' => 'fallback',
-            'error' => 'cURL is not available for OpenAI API requests.',
-        ];
-    }
-
-    $payload = [
-        'model' => $model,
-        'instructions' => 'You are PhishTrace AI Security Assistant. Explain phishing risk clearly, reference only provided indicators, and give concise safety recommendations.',
-        'input' => [
-            [
-                'role' => 'user',
-                'content' => [
-                    [
-                        'type' => 'input_text',
-                        'text' => buildAiSecurityPrompt($analysis),
-                    ],
-                ],
-            ],
-        ],
-        'max_output_tokens' => 350,
-    ];
-
-    $ch = curl_init('https://api.openai.com/v1/responses');
-    curl_setopt_array($ch, [
-        CURLOPT_POST => true,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT => 20,
-        CURLOPT_HTTPHEADER => [
-            'Authorization: Bearer ' . $apiKey,
-            'Content-Type: application/json',
-        ],
-        CURLOPT_POSTFIELDS => json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
-    ]);
-
-    $rawResponse = curl_exec($ch);
-    $curlError = curl_error($ch);
-    $statusCode = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-    curl_close($ch);
-
-    if (!is_string($rawResponse) || $rawResponse === '') {
-        return [
-            'text' => buildFallbackAiReport($analysis),
-            'source' => 'fallback',
-            'error' => $curlError !== '' ? $curlError : 'OpenAI API returned an empty response.',
-        ];
-    }
-
-    $decoded = json_decode($rawResponse, true);
-    $text = is_array($decoded) ? extractOpenAiText($decoded) : '';
-
-    if ($statusCode >= 400 || $text === '') {
-        return [
-            'text' => buildFallbackAiReport($analysis),
-            'source' => 'fallback',
-            'error' => is_array($decoded) && isset($decoded['error']['message'])
-                ? (string) $decoded['error']['message']
-                : 'OpenAI API request failed.',
-        ];
+    if (empty($analysis['checkphish']) && !empty($analysis['url'])) {
+        $analysis['checkphish'] = fetchCheckPhishAnalysis((string) $analysis['url']);
     }
 
     return [
-        'text' => $text,
-        'source' => 'openai',
-        'error' => null,
+        'text' => buildFallbackAiReport($analysis),
+        'source' => 'checkphish',
+        'error' => !empty($analysis['checkphish']['ok']) ? null : (string) ($analysis['checkphish']['error'] ?? 'CheckPhish API request failed.'),
     ];
 }
 
@@ -1056,9 +1174,32 @@ function userExists(PDO $pdo, int $userId): bool
 
 /**
  * Save scan result to database for history.
+ * Returns the ID of the new or existing (throttled) scan.
  */
-function saveScan(int $userId, string $url, string $domain, int $riskScore, string $status, array $reasons, PDO $pdo): void
+function saveScan(int $userId, string $url, string $domain, int $riskScore, string $status, array $reasons, PDO $pdo): int
 {
+    /**
+     * DUPLICATE SCAN & POINT PROTECTION (Throttle)
+     * Checks if the user recently scanned this exact URL.
+     */
+    $scanTimestampColumn = tableHasColumn($pdo, 'scans', 'created_at')
+        ? 'created_at'
+        : (tableHasColumn($pdo, 'scans', 'scanned_at') ? 'scanned_at' : null);
+
+    $recentSql = "SELECT id FROM scans WHERE user_id = :uid AND url = :url";
+    if ($scanTimestampColumn !== null) {
+        $recentSql .= " AND {$scanTimestampColumn} > DATE_SUB(NOW(), INTERVAL 5 MINUTE)";
+    }
+    $recentSql .= ' LIMIT 1';
+
+    $recentStmt = $pdo->prepare($recentSql);
+    $recentStmt->execute(['uid' => $userId, 'url' => $url]);
+    $existingId = $recentStmt->fetchColumn();
+
+    if ($existingId) {
+        return (int) $existingId;
+    }
+
     $payload = [
         'user_id' => $userId,
         'url' => $url,
@@ -1082,6 +1223,7 @@ function saveScan(int $userId, string $url, string $domain, int $riskScore, stri
     }
 
     $stmt->execute($payload);
+    $newScanId = (int) $pdo->lastInsertId();
 
     if (tableHasColumn($pdo, 'users', 'security_score')) {
         $scorePoints = securityPointsByStatus($status);
@@ -1098,6 +1240,8 @@ function saveScan(int $userId, string $url, string $domain, int $riskScore, stri
     }
 
     awardUserAchievements($userId, $pdo);
+    
+    return $newScanId;
 }
 
 /**
@@ -1131,44 +1275,202 @@ if (!function_exists('currentLanguage')) {
     }
 }
 
+if (!function_exists('languageSwitchUrl')) {
+    function languageSwitchUrl(string $lang): string
+    {
+        $lang = strtolower(trim($lang));
+        $lang = in_array($lang, ['en', 'sq'], true) ? $lang : 'en';
+        $uri = (string) ($_SERVER['REQUEST_URI'] ?? '/');
+        $parts = parse_url($uri) ?: [];
+        $path = (string) ($parts['path'] ?? '/');
+        $query = [];
+        if (!empty($parts['query'])) {
+            parse_str((string) $parts['query'], $query);
+        }
+        $query['lang'] = $lang;
+        return $path . '?' . http_build_query($query);
+    }
+}
+
+if (!function_exists('translateResult')) {
+    function translateResult(string $en, string $sq, ?string $lang = null): string
+    {
+        $selected = $lang !== null ? strtolower(trim((string) $lang)) : currentLanguage();
+        $selected = in_array($selected, ['en', 'sq'], true) ? $selected : 'en';
+
+        return $selected === 'sq' ? (string) $sq : (string) $en;
+    }
+}
+
 if (!function_exists('tr')) {
     function tr(string $en, string $sq): string
     {
-        return currentLanguage() === 'sq' ? $sq : $en;
+        return translateResult($en, $sq);
     }
 }
 
 if (!function_exists('t')) {
     function t(string $key): string
     {
-        static $dict = [
+        static $dict = null;
+
+        if ($dict === null) {
+            $dict = loadTranslations();
+        }
+
+        $lang = currentLanguage();
+        $value = $dict[$lang][$key] ?? null;
+        if ($value !== null) {
+            return $value;
+        }
+
+        return $dict['en'][$key] ?? ucwords(str_replace('_', ' ', $key));
+    }
+}
+
+if (!function_exists('loadTranslations')) {
+    function loadTranslations(): array
+    {
+        $fallback = [
             'en' => [
                 'invalid_csrf' => 'Invalid CSRF token.',
                 'language_saved' => 'Language saved.',
                 'settings' => 'Settings',
                 'language_settings' => 'Language Settings',
-                'choose_language' => 'Choose your preferred language.',
+                'choose_language' => 'Language',
+                'home' => 'Home',
+                'scan_url' => 'Scan URL',
+                'history' => 'History',
+                'security_tips' => 'Security Tips',
+                'tips_title' => 'Security and Privacy Tips for Social Networks',
+                'tips_intro' => 'These tips help reduce phishing, account takeover, and privacy leaks.',
+                'tips_empty' => 'No tips found. Import the PhishTrace seed data first.',
+                'scan_title' => 'Scan a suspicious link',
+                'scan_subtitle' => 'PhishTrace checks the URL, scan indicators, and suspicious patterns before you click.',
+                'scan_input_label' => 'URL to scan',
+                'scan_placeholder' => 'https://example.com/login',
+                'scan_button' => 'Start scan',
+                'history_title' => 'Your Scan History',
+                'history_new_scan' => 'New Scan',
+                'history_empty' => 'No scans found yet. Try your first URL scan.',
+                'history_table_date' => 'Date',
+                'history_table_url' => 'URL',
+                'history_table_score' => 'Score',
+                'history_table_status' => 'Status',
+                'history_table_reasons' => 'Reasons',
+                'history_no_reasons' => 'No reasons stored',
+                'home_hero_title' => 'Stay safer on social networks with PhishTrace',
+                'home_hero_body' => 'This beginner-friendly web app demonstrates rule-based phishing link detection, privacy awareness, and secure coding basics in PHP.',
+                'home_scan_cta' => 'Scan a URL',
+                'home_tips_cta' => 'Read Security Tips',
+                'home_quick_checks' => 'Quick Security Checks',
+                'home_tip_2fa_title' => 'Add 2FA to your accounts',
+                'home_tip_2fa_body' => 'Turn on two-factor authentication on every social account.',
+                'home_tip_link_title' => 'Check links before clicking',
+                'home_tip_link_body' => 'Verify the domain manually before logging in or opening a page.',
+                'home_tip_pass_title' => 'Use strong unique passwords',
+                'home_tip_pass_body' => 'Avoid reusing the same password across social and email accounts.',
+                'home_step_1_title' => '1. Submit Link',
+                'home_step_1_body' => 'Paste any URL and run a quick risk analysis using predefined scam indicators.',
+                'home_step_2_title' => '2. Understand Risk',
+                'home_step_2_body' => 'Get score, status badge, and reasons that explain why a link may be suspicious.',
+                'home_step_3_title' => '3. Learn Safe Habits',
+                'home_step_3_body' => 'Review privacy and security recommendations for social media usage.',
                 'english' => 'English',
                 'albanian' => 'Albanian',
+                'notifications' => 'Notifications',
+                'achievement_unlocked' => 'Achievement unlocked',
+                'no_achievements_yet' => 'No achievements yet',
+                'achievements_empty_help' => 'Your unlocked achievements will show here.',
+                'achievements_empty_cta' => 'Complete scans to unlock achievements and earn points.',
+                'total_achievements' => 'Total achievements',
+                'total_points' => 'Total points',
+                'threat_radar' => 'Threat Radar',
+                'register' => 'Register',
+                'logout' => 'Logout',
             ],
             'sq' => [
-                'invalid_csrf' => 'Token CSRF i pavlefshem.',
+                'invalid_csrf' => 'Token CSRF i pavlefshëm.',
                 'language_saved' => 'Gjuha u ruajt.',
-                'settings' => 'Cilesimet',
-                'language_settings' => 'Cilesimet e Gjuhes',
-                'choose_language' => 'Zgjidh gjuhen e preferuar.',
+                'settings' => 'Cilësimet',
+                'language_settings' => 'Cilësimet e gjuhës',
+                'choose_language' => 'Gjuha',
+                'home' => 'Ballina',
+                'scan_url' => 'Skano URL',
+                'history' => 'Historiku',
+                'security_tips' => 'Këshilla',
+                'tips_title' => 'Këshilla për sigurinë dhe privatësinë në rrjetet sociale',
+                'tips_intro' => 'Këto këshilla ulin phishing, marrjen e llogarive dhe rrjedhjet e privatësisë.',
+                'tips_empty' => 'Nuk u gjetën këshilla. Importo të dhënat fillestare të PhishTrace.',
+                'scan_title' => 'Skano një link të dyshimtë',
+                'scan_subtitle' => 'PhishTrace kontrollon URL-në, treguesit e skanimit dhe modelet e dyshimta para se të klikosh.',
+                'scan_input_label' => 'URL për skanim',
+                'scan_placeholder' => 'https://shembull.com/hyrja',
+                'scan_button' => 'Nis skanimin',
+                'history_title' => 'Historiku i skanimeve',
+                'history_new_scan' => 'Skanim i ri',
+                'history_empty' => 'Ende nuk ka skanime. Provo skanimin e parë të URL-së.',
+                'history_table_date' => 'Data',
+                'history_table_url' => 'URL',
+                'history_table_score' => 'Rezultati',
+                'history_table_status' => 'Statusi',
+                'history_table_reasons' => 'Arsyet',
+                'history_no_reasons' => 'Nuk ka arsye të ruajtura',
+                'home_hero_title' => 'Qëndro më i sigurt në rrjetet sociale me PhishTrace',
+                'home_hero_body' => 'Ky aplikacion miqësor për fillestarët demonstron zbulimin e linkeve phishing me rregulla, ndërgjegjësimin për privatësinë dhe bazat e kodimit të sigurt në PHP.',
+                'home_scan_cta' => 'Skano një URL',
+                'home_tips_cta' => 'Lexo këshillat e sigurisë',
+                'home_quick_checks' => 'Kontrolle të shpejta sigurie',
+                'home_tip_2fa_title' => 'Shto 2FA në llogaritë e tua',
+                'home_tip_2fa_body' => 'Aktivizo autentifikimin me dy faktorë në çdo llogari sociale.',
+                'home_tip_link_title' => 'Kontrollo linket para se të klikosh',
+                'home_tip_link_body' => 'Verifiko domenin manualisht para se të hysh ose të hapësh një faqe.',
+                'home_tip_pass_title' => 'Përdor fjalëkalime të forta unike',
+                'home_tip_pass_body' => 'Mos ripërdor të njëjtin fjalëkalim në llogari sociale dhe email.',
+                'home_step_1_title' => '1. Dërgo linkun',
+                'home_step_1_body' => 'Ngjit çdo URL dhe kryej një analizë të shpejtë me tregues mashtrimi.',
+                'home_step_2_title' => '2. Kupto rrezikun',
+                'home_step_2_body' => 'Merr rezultat, status dhe arsyet që shpjegojnë pse linku mund të jetë i dyshimtë.',
+                'home_step_3_title' => '3. Mëso zakone të sigurta',
+                'home_step_3_body' => 'Shiko rekomandimet për privatësi dhe siguri në rrjetet sociale.',
                 'english' => 'Anglisht',
                 'albanian' => 'Shqip',
+                'notifications' => 'Njoftimet',
+                'achievement_unlocked' => 'Fitove një arritje',
+                'no_achievements_yet' => 'Ende pa arritje',
+                'achievements_empty_help' => 'Arritjet e tua do të shfaqen këtu.',
+                'achievements_empty_cta' => 'Kryej skanime për të zhbllokuar arritje dhe për të fituar pikë.',
+                'total_achievements' => 'Totali i arritjeve',
+                'total_points' => 'Totali i pikëve',
+                'threat_radar' => 'Radari i Kërcënimeve',
+                'register' => 'Regjistrohu',
+                'logout' => 'Dil',
             ],
         ];
 
-        $lang = currentLanguage();
-        $value = $dict[$lang][$key] ?? $dict['en'][$key] ?? null;
-        if ($value !== null) {
-            return $value;
+        $translationDir = realpath(__DIR__ . '/../locales');
+        if ($translationDir === false) {
+            return $fallback;
         }
 
-        return ucwords(str_replace('_', ' ', $key));
+        foreach (['en', 'sq'] as $lang) {
+            $path = $translationDir . DIRECTORY_SEPARATOR . $lang . '.json';
+            if (!is_file($path)) {
+                continue;
+            }
+
+            $json = file_get_contents($path);
+            if ($json === false) {
+                continue;
+            }
+
+            $loaded = json_decode($json, true);
+            if (is_array($loaded)) {
+                $fallback[$lang] = array_replace($fallback[$lang], $loaded);
+            }
+        }
+
+        return $fallback;
     }
 }
 

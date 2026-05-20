@@ -128,7 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     redirect('index.php');
 }
 
-$pageTitle = 'Login';
+$pageTitle = t('login');
 require_once __DIR__ . '/includes/header.php';
 ?>
 

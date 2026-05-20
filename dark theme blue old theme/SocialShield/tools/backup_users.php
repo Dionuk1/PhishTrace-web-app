@@ -1,5 +1,5 @@
 <?php
-// SocialShield: backup only the users table into SQL + CSV.
+// PhishTrace: backup only the users table into SQL + CSV.
 // Run manually when you want a restore point.
 //
 // Usage (PowerShell):
@@ -55,7 +55,7 @@ try {
     $columnList = implode(', ', array_map(static fn(string $c): string => "`{$c}`", $columns));
 
     $sql = [];
-    $sql[] = '-- SocialShield users backup';
+    $sql[] = '-- PhishTrace users backup';
     $sql[] = '-- Created at: ' . date('Y-m-d H:i:s');
     $sql[] = 'SET NAMES utf8mb4;';
     $sql[] = '';
