@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    var API_KEY = "frjk6y11c3pn7srlxzn6s2j44gjiv06189zyxn0zdrcqxxa86prw3rsb01exqsk2";
+    var API_KEY = "YOUR_API_KEY";
     var SCAN_ENDPOINT = "https://developers.bolster.ai/api/neo/scan";
     var STATUS_ENDPOINT = "https://developers.bolster.ai/api/neo/scan/status";
     var HISTORY_KEY = "phishtrace_scan_history";
