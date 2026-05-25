@@ -112,17 +112,24 @@ socialshield/
 ```
 
 ## Setup (Windows/Laragon or XAMPP)
-1. Place the project inside your web root (for example: C:/laragon/www/socialshield).
-2. Start Apache and MySQL/MariaDB.
-3. Create a database (commonly named socialshield).
-4. Import [database/socialshield.sql](database/socialshield.sql).
-5. Install PHP dependencies:
+1. Clone the project:
+
+```bash
+git clone https://github.com/Dionuk1/PhishTrace-web-app.git
+cd PhishTrace-web-app
+```
+
+2. Place the project inside your web root (for example: C:/laragon/www/socialshield).
+3. Start Apache and MySQL/MariaDB.
+4. Create a database (commonly named socialshield).
+5. Import [database/socialshield.sql](database/socialshield.sql).
+6. Install PHP dependencies:
 
 ```bash
 composer install
 ```
 
-6. Open the app in your browser (example: http://localhost/socialshield).
+7. Open the app in your browser (example: http://localhost/socialshield).
 
 ## Demo Credentials
 - Admin
