@@ -4,6 +4,8 @@ PhishTrace is a PHP web app for phishing URL analysis, social-media honeypot mon
 
 The project combines rule-based scoring, external threat signals (OpenPhish), and operator dashboards for manual review.
 
+![image alt](https://github.com/Dionuk1/PhishTrace-web-app/blob/d06b34be564ed8a54e5908f401d08b89cedb8c8a/image.png)
+
 ## Current Stack
 - PHP 8.1+ (tested on local Windows/Laragon setups)
 - MySQL or MariaDB
