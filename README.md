@@ -1,6 +1,6 @@
-# SocialShield
+# PhishTrace
 
-SocialShield is a PHP web app for phishing URL analysis, social-media honeypot monitoring, threat-intelligence ingestion, and AI-assisted risk summaries.
+PhishTrace is a PHP web app for phishing URL analysis, social-media honeypot monitoring, threat-intelligence ingestion, and AI-assisted risk summaries.
 
 The project combines rule-based scoring, external threat signals (OpenPhish), and operator dashboards for manual review.
 
